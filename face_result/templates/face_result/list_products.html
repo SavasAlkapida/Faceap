@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ürün Listesi</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 40px; }
+        h1 { color: #0a84ff; }
+        img { width: 100px; height: auto; border-radius: 8px; }
+        ul { list-style-type: none; padding: 0; }
+        li { background-color: #fff; border: 1px solid #ddd; margin-top: 10px; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        li:hover { background-color: #f9f9f9; }
+        .details { font-size: 16px; color: #666; }
+        .highlight { color: #333; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Ürünler</h1>
+    <ul>
+        {% for product in products %}
+        <li>
+            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+            <div class="details">Ürün ismi: {{ product.name }}</div>
+            <div class="details">Fiyat: {{ product.price }} TL</div>
+            <div class="details">Marka: {{ product.brand }}</div>
+            <div class="details">Alış fiyatı: {{ product.cost_price }}</div>
+            <div class="details">Stok: {{ product.stock }}</div>
+            <div class="details">Görüntüleme: {{ product.score_view  }}</div>
+            <div class="details">Rayting: {{ product.score_total  }}</div>
+            <div class="details">Son altı ay satış: {{ product.sold_6_months  }}</div>
+        </li>
+        {% empty %}
+        <li>Ürün bulunamadı.</li>
+        {% endfor %}
+    </ul>
+    <div class="pagination">
+        <span class="step-links">
+            {% if products.has_previous %}
+                <a href="?page=1">&laquo; ilk</a>
+                <a href="?page={{ products.previous_page_number }}">önceki</a>
+            {% endif %}
+
+            <span class="current">
+                Sayfa {{ products.number }} / {{ products.paginator.num_pages }}.
+            </span>
+
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}">sonraki</a>
+                <a href="?page={{ products.paginator.num_pages }}">son &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</body>
+</html>
+
+

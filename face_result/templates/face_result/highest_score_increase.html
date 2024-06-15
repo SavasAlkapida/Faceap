@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ürün Skor Artışı</title>
+</head>
+<body>
+    <h1>Ürün Skor Artışı</h1>
+
+    {% if product_score %}
+        <p>En büyük score_total artışı: {{ score_increase }}, Ürün: {{ product_score.name }}</p>
+    {% else %}
+        <p>Score_total için hiç artış bulunamadı.</p>
+    {% endif %}
+
+    {% if product_impressions %}
+        <p>En büyük impressions artışı: {{ impressions_increase }}, Ürün: {{ product_impressions.name }}</p>
+    {% else %}
+        <p>Impressions için hiç artış bulunamadı.</p>
+    {% endif %}
+</body>
+</html>
+
+

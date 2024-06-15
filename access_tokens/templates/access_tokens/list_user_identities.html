@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Identities</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>User Identities</h1>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Identity ID</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for identity in user_identities %}
+                    <tr>
+                        <td>{{ identity.identity_id }}</td>
+                        <td>{{ identity.created_at }}</td>
+                        <td>
+                            <a href="{% url 'delete_user_identity' identity.identity_id %}" class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

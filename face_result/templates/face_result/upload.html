@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>File Upload</title>
+</head>
+<body>
+    <h1>Upload a file</h1>
+    <!-- action attribute'suna formun gönderileceği URL verilmeli -->
+    <form method="post" enctype="multipart/form-data" action="{% url 'upload_file' %}">
+        {% csrf_token %} <!-- CSRF token Django form güvenliği için zorunludur -->
+        {{ form.as_p }}  <!-- Form alanlarını paragraf etiketleri içinde göster -->
+        <button type="submit">Upload</button>
+    </form>
+</body>
+</html>

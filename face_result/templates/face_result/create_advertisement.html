@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load bootstrap_filters %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Advertisement</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Create Advertisement</h1>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="id_reklam_verme_tarihi" class="form-label">Reklam Verme Tarihi</label>
+                {{ form.reklam_verme_tarihi|addclass:"form-control" }}
+            </div>
+            <div class="mb-3">
+                <label for="id_tiklama_sayisi_face" class="form-label">Tıklama Sayısı Face</label>
+                {{ form.tiklama_sayisi_face|addclass:"form-control" }}
+            </div>
+            <div class="mb-3">
+                <label for="id_goruntuleme_sayisi_face" class="form-label">Görüntüleme Sayısı Face</label>
+                {{ form.goruntuleme_sayisi_face|addclass:"form-control" }}
+            </div>
+            <div class="mb-3">
+                <label for="id_tiklama_sayisi_instg" class="form-label">Tıklama Sayısı INSTG</label>
+                {{ form.tiklama_sayisi_instg|addclass:"form-control" }}
+            </div>
+            <div class="mb-3">
+                <label for="id_goruntuleme_sayisi_instgr" class="form-label">Görüntüleme Sayısı INSTGR</label>
+                {{ form.goruntuleme_sayisi_instgr|addclass:"form-control" }}
+            </div>
+            <div class="mb-3">
+                <label for="id_satis_orani" class="form-label">Satış Oranı</label>
+                {{ form.satis_orani|addclass:"form-control" }}
+            </div>
+            <div class="mb-3">
+                <label for="id_site_raytingi" class="form-label">Site Raytingi</label>
+                {{ form.site_raytingi|addclass:"form-control" }}
+            </div>
+            <div class="mb-3">
+                <label for="id_image" class="form-label">Reklam Resmi</label>
+                {{ form.image|addclass:"form-control" }}
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{% url 'advertisement_list' %}" class="btn btn-secondary">Back to list</a>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
+

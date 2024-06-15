@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reklam Grafikleri</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Reklam Grafikleri</h1>
+    <canvas id="reklamChart" width="800" height="400"></canvas>
+    <script>
+        var ctx = document.getElementById('reklamChart').getContext('2d');
+        var reklamlar = JSON.parse('{{ reklamlar_json|safe }}');
+
+        var labels = reklamlar.map(function(item) { return item.fields.rating; });
+        var data = reklamlar.map(function(item) { return item.fields.goruntuleme_sayisi; });
+
+        var chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Görüntüleme sayısı',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    data: data
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

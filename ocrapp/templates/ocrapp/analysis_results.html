@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invoice Analysis Result</title>
+</head>
+<body>
+    <h1>Invoice Analysis Result</h1>
+    <p><strong>Company:</strong> {{ result.company }}</p>
+    <p><strong>Date:</strong> {{ result.date }}</p>
+    <p><strong>Invoice Number:</strong> {{ result.invoice_number }}</p>
+    <p><strong>Customer:</strong> {{ result.customer }}</p>
+    <p><strong>Total Amount:</strong> {{ result.total_amount }}</p>
+    <p><strong>IBAN:</strong> {{ result.iban }}</p>
+    <h2>Items:</h2>
+    <ul>
+        {% for item in result.items %}
+        <li>
+            <p><strong>Description:</strong> {{ item.description }}</p>
+            <p><strong>Quantity:</strong> {{ item.quantity }}</p>
+            <p><strong>Unit Price:</strong> {{ item.unit_price }}</p>
+            <p><strong>Total Price:</strong> {{ item.total_price }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
+

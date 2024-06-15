@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Issue Access Tokens</title>
+</head>
+<body>
+    <h1>Issue Access Tokens</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Issue Token</button>
+    </form>
+</body>
+</html>

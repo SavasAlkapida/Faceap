@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invoice List</title>
+</head>
+<body>
+    <h1>Invoice List</h1>
+    <ul>
+        {% for invoice in invoices %}
+            <li>{{ invoice.invoice_number }} - {{ invoice.customer }} - {{ invoice.total_amount }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

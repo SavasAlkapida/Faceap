@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ürün Listesi</title>
+    {% load static %}
+
+    
+
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .description {
+            max-width: 50px; /* Genişlik ayarı */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .full-description {
+            max-width: 250px; /* Genişlik sabit tutuluyor */
+            white-space: normal; /* Tam metin görüntülenirken normal akışa izin ver */
+        }
+
+        .container {
+            max-height: 90vh; /* Viewport'un %90'ı kadar maksimum yükseklik */
+            overflow-y: auto; /* Dikey yönde kaydırma çubuğu otomatik olarak görünsün */
+
+        }
+
+        .pagination ul {
+            list-style: none; /* Liste işaretlerini kaldır */
+            padding: 0; /* Varsayılan padding değerini sıfırla */
+            display: flex; /* Flexbox ile elemanları yan yana sırala */
+            justify-content: center; /* Merkeze hizala */
+            margin: 10px 0; /* Üst ve alt boşluk ver */
+        }
+        
+        .pagination li {
+            margin: 0 5px; /* List item'lar arasında boşluk bırak */
+        }
+        
+        .pagination a {
+            text-decoration: none; /* Bağlantılardaki altı çizgiyi kaldır */
+            color: blue; /* Bağlantı rengini belirle */
+        }
+        
+        .pagination .active span {
+            font-weight: bold; /* Aktif sayfa numarasını kalın yap */
+            color: red; /* Aktif sayfa numarası rengini belirle */
+        }
+        
+        .pagination .disabled span {
+            color: grey; /* Pasif bağlantı rengini belirle */
+        }
+            
+
+    </style>
+
+    
+</head>
+<body>
+    <h1>Silmek istediğinize eminmisiniz</h1>
+    <form method="post" action="{% url 'delete_all_items' %}">
+        {% csrf_token %}
+        <button type="submit">Hepsini sil</button>
+    </form>
+
+    <form method="post" action="{% url 'show_highest_impressions' %}">
+        {% csrf_token %}
+        <button type="submit">Hepsini sil</button>
+    </form>
+
+
+    <h1>Ürünler</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Ürün Kodu</th>
+                <th>Sayfa Adı</th>
+                <th>Ünvan</th>
+                <th>Açıklama</th>
+                <th>Süre Sn</th>
+                <th>Yayınlanma Zamanı</th>
+                <th>Sabit Bağlantı</th>
+                <th>Çapraz Paylaşım</th>
+                <th>Gönderi Türü</th>
+                <th>Gösterimler</th>
+                <th>Erişim</th>
+                <th>İfadeler Yorumlar Paylaşımlar</th>
+                <th>İfadeler</th>
+                <th>Yorumlar</th>
+                <th>Paylaşımlar</th>
+                <th>Toplam Tıkalamalar</th>
+                <th>Bağlantı Tıklamaları</th>
+                <th>Eşleşen Hedef Kitle Tüketim Hedeflemesi (Photo Click)</th>
+                <th>Diğer tıklamalar</th>
+                <th>Eşleşen Hedef Kitle Tüketim Hedeflemesi (Video Click)</th>
+                <th>Kullanıcılardan olumsuz görüşler: Tümünü Gizle</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+
+                <td>{{ item.post_code }}</td>
+                <td>{{ item.page_code }}</td>
+                <td>{{ item.page_name }}</td>
+                <td class="description">
+                    <span id="short-{{ forloop.counter }}" style="display: block;">{{ item.description|slice:":100" }}...</span>
+                    <span id="full-{{ forloop.counter }}" class="full-description hidden" style="display: none;">{{ item.description }}</span>
+                    <button onclick="toggleDescription('{{ forloop.counter }}')">Devamını Oku</button>
+                </td>
+                <td>{{ item.duration_seconds }}</td>
+                <td>{{ item.cross_share }}</td>
+                <td><a href="{{ item.permalink }}">Sayfaya git </a></td>
+                <td>{{ item.share_type }}</td>
+                <td>{{ item.post_type }}</td>
+                <td>{{ item.impressions }}</td>
+                <td>{{ item.reach }}</td>
+                <td>{{ item.reactions_comments_shares }}</td>
+                <td>{{ item.reactions }}</td>
+                <td>{{ item.comments }}</td>
+                <td>{{ item.shares }}</td>
+                <td>{{ item.total_clicks }}</td>
+                <td>{{ item.link_clicks }}</td>
+                <td>{{ item.other_clicks }}</td>
+                <td>{{ item.matched_target_audience_consumption_photo_click }}</td>
+                <td>{{ item.duration }}</td>
+                <td>{{ item.publish_time}}</td>
+                
+
+            </tr>
+            {% endfor %}
+        </tbody>
+
+        
+    </table>
+
+    <div class="pagination">
+        {% if items.has_other_pages %}
+            <ul>
+                {% if items.has_previous %}
+                    <li><a href="?page={{ items.previous_page_number }}">&laquo; Önceki</a></li>
+                {% endif %}
+    
+                {% with current=items.number max_pages=items.paginator.num_pages %}
+                    {% for i in items.paginator.page_range %}
+                        {% if i >= current|add:'-2' and i <= current|add:'2' %}
+                            {% if current == i %}
+                                <li class="active"><span>{{ i }}</span></li>
+                            {% else %}
+                                <li><a href="?page={{ i }}">{{ i }}</a></li>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% endwith %}
+    
+                {% if items.has_next %}
+                    <li><a href="?page={{ items.next_page_number }}">Sonraki &raquo;</a></li>
+                {% else %}
+                    <li class="disabled"><span>Sonraki &raquo;</span></li>
+                {% endif %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleDescription(id) {
+            var shortText = document.getElementById('short-' + id);
+            var fullText = document.getElementById('full-' + id);
+            var button = document.getElementById('btn-' + id);
+            if (fullText.style.display === 'none') {
+                fullText.style.display = 'block'; // Tam metni göster
+                shortText.style.display = 'none';
+                button.textContent = 'Kısa Metin'; // Buton metnini güncelle
+            } else {
+                fullText.style.display = 'none';
+                shortText.style.display = 'block'; // Kısa metni göster
+                button.textContent = 'Devamını Oku'; // Buton metnini güncelle
+            }
+        }
+    </script>
+
+    
+</body>
+</html>

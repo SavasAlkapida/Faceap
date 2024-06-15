@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sosyal Medya Gönderileri</title>
+</head>
+<body>
+    <h1>Sosyal Medya Gönderileri Listesi</h1>
+    <ul>
+        {% for post in posts %}
+    impressions = models.IntegerField()
+    <li>{{ post.title }} - {{ post.description }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

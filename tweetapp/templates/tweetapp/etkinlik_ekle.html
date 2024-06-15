@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{%block content%}
+
+<h1>Etkinlik Ekle</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Ekle</button>
+</form>
+
+<h2>Veriler</h2>
+
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Başlık 1</th>
+            <th scope="col">Başlık 2</th>
+            <th scope="col">Başlık 3</th>
+            <!-- Diğer başlıklar -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for object in objects %}
+            <tr>
+                <td>{{ object.isim }}</td>
+                <td>{{ object.ormatted_baslangic_saati_with_timezone }}</td>
+                <td>{{ object.total_price_vat }}</td>
+                <td>{{ object.bitis_saati }}</td>
+                <td>{{ object.price }}</td>
+                <td>{{ object.vat_price }}</td>
+                <!-- Diğer alanlar -->
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="3">Hiç etkinlik bulunamadı.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+{%endblock%}

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Elio Sentences</title>
+</head>
+<body>
+    <h1>Elio Sentences</h1>
+    <ul>
+        {% for sentence in sentences %}
+            <li>{{ sentence }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Invoice List</h1>
+    <ul>
+        {% for invoice in invoices %}
+            <li>{{ invoice.invoice_number }} - {{ invoice.customer }} - {{ invoice.total_amount }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

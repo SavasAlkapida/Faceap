@@ -1,0 +1,6 @@
+<h1>Top 50 Products by Highest Score</h1>
+<ul>
+    {% for ad in advertisements %}
+    <li>{{ ad.name }} - Score: {{ ad.score_total }}</li>
+    {% endfor %}
+</ul>

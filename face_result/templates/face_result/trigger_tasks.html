@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trigger Celery Tasks</title>
+    <script>
+        function triggerTask(url) {
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    alert('Task triggered with ID: ' + data.task_id);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</head>
+<body>
+    <h1>Trigger Celery Tasks</h1>
+    <button onclick="triggerTask('{% url 'trigger_record_daily_score_view' %}')">Trigger Record Daily Score View</button>
+    <button onclick="triggerTask('{% url 'trigger_fetch_xml_data' %}')">Trigger Fetch XML Data</button>
+</body>
+</html>

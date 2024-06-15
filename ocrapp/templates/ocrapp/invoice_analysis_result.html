@@ -1,0 +1,33 @@
+<!-- ocrapp/templates/ocrapp/analysis_results.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Analysis Results</title>
+</head>
+<body>
+    <h1>Invoice Analysis Results</h1>
+    <p>Company: {{ result.company }}</p>
+    <p>Date: {{ result.date }}</p>
+    <p>Invoice Number: {{ result.invoice_number }}</p>
+    <p>Customer: {{ result.customer }}</p>
+    <h2>Items</h2>
+    <ul>
+        {% for item in result.items %}
+            <li>
+                <strong>Description:</strong> {{ item.description }}<br>
+                <strong>Quantity:</strong> {{ item.quantity }}<br>
+                <strong>Unit Price:</strong> {{ item.unit_price }}<br>
+                <strong>Total Price:</strong> {{ item.total_price }}<br>
+            </li>
+        {% endfor %}
+    </ul>
+    <p>Total Amount: {{ result.total_amount }}</p>
+    <p>IBAN: {{ result.iban }}</p>
+</body>
+</html>
+
+
+
+

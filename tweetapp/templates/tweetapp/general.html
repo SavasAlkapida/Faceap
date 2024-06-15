@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tekno Soft - Dashboard</title>
+    <link href="../CSS/style.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="../CSS/boxicons.min.css" rel="stylesheet" />
+    <link href="../CSS/all.min.css" rel="stylesheet" />
+    <link href="../CSS/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+    <!-- !Modal -->
+    <div class="modal fade" id="Modal-1" tabindex="-1" aria-labelledby="contactenModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="contactenModalLabel">Bankrekening</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <div class="col-md-12 mt-4">
+                            <div class="form-floating has-validation">
+                                <div class="input-data">
+                                    <input type="text" class="form-control has-validation shadow-none rounded-0"
+                                        id="Rekinig" placeholder="Rekinig*">
+                                    <div class="altcizgi"></div>
+                                    <div class="invalid-feedback"></div>
+                                    <div class="valid-feedback">Başarılı Devam Et</div>
+                                    <label for="Rekinig">Rekinig*</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-4">
+                            <div class="form-floating has-validation">
+                                <div class="input-data">
+                                    <input type="text" class="form-control has-validation shadow-none rounded-0"
+                                        id="BIC" placeholder="BIC">
+                                    <div class="altcizgi"></div>
+                                    <div class="invalid-feedback"></div>
+                                    <div class="valid-feedback">Başarılı Devam Et</div>
+                                    <label for="BIC">BIC</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-4">
+                            <div class="form-floating has-validation">
+                                <div class="input-data">
+                                    <input type="text" class="form-control has-validation shadow-none rounded-0"
+                                        id="Naam" placeholder="Naam">
+                                    <div class="altcizgi"></div>
+                                    <div class="invalid-feedback"></div>
+                                    <div class="valid-feedback">Başarılı Devam Et</div>
+                                    <label for="Naam">Naam</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-4">
+                            <div class="form-floating has-validation">
+                                <select class="form-select shadow-none has-validation select-6 rounded-0" id="Land"
+                                    data-placeholder="Land">
+                                    <option value="1" selected>NEDERLAND</option>
+                                    <option value="2">Italie</option>
+                                    <option value="3">Belgie</option>
+                                </select>
+                                <label for="Land">Land</label>
+                                <div class="valid-feedback">Başarılı Devam Et</div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="Voorkuer" checked>
+                                <label class="form-check-label" for="Voorkuer">
+                                    Voorkuer
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-4">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button class="btn btn-outline-light text-dark border">Annuleren</button>
+                                <button class="btn btn-primary">Opslaan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- !Sidebar Start -->
+    <div class="sidebar close z-3" id="sidebar">
+        <div class="logo-details">
+            <i class='bx bxl-typescript'></i>
+            <span class="logo_name">Tekno Soft</span>
+        </div>
+        <!-- ?Sub Menü UL Başladı -->
+        <div class="nav-links">
+            <div class="menu-li">
+                <a href="index.html">
+                    <i class='bx bx-grid-alt'></i>
+                    <span class="link_name" key="Anasayfa1"></span>
+                </a>
+                <div class="sub-menu blank">
+                    <div class="sub-menu-content"><a class="link_name" href="index.html">Anasayfa</a></div>
+                </div>
+            </div>
+            <div class="menu-li">
+                <a href="#">
+                    <i class='bx bx-collection'></i>
+                    <span class="link_name">Veriler</span>
+                </a>
+                <div class="sub-menu blank">
+                    <div class="sub-menu-content"><a class="link_name" href="kural.html" key="Veriler"></a></div>
+                </div>
+            </div>
+            <div class="menu-li">
+                <div class="iocn-link">
+                    <a href="#">
+                        <i class='bx bx-book-alt'></i>
+                        <span class="link_name" key="Alış"></span>
+                    </a>
+                    <i class='bx bxs-chevron-down arrow'></i>
+                </div>
+                <div class="sub-menu">
+                    <div class="sub-menu-content">
+                        <div class="sub-menu-grups columns">
+                            <div class="sub-menu-grup">
+                                <div class="sub-menu-grup-title link_name"><span>Alış</span></div>
+                                <ul>
+                                    <li><a href="kategori.html" key="Alış Faturaları"></a></li>
+                                    <li><a href="#" key="Açık Hesaplar"></a></li>
+                                    <li><a href="tedarikci.html" key="Tedarikçiler"></a></li>
+                                    <li><a href="#" key="Ödeme Koşulları"></a></li>
+                                    <li><a href="#" key="Teslimat KOşulları"></a></li>
+                                    <li><a href="bilgi-defteri.html">Bilgi Defteri</a></li>
+                                    <li><a href="bilgi-defteri.html">Köfe Ekmel</a></li>
+                                    <li><a href="bilgi-defteri.html">Lahmacun Kebap</a></li>
+                                    <li><a href="bilgi-defteri.html">Kuru Fasulye Pilav</a></li>
+                                </ul>
+                            </div>
+                            <div class="sub-menu-grup">
+                                <div class="sub-menu-grup-title"><span>Alış 1</span></div>
+                                <ul>
+                                    <li><a href="kategori.html" key="Alış Faturaları"></a></li>
+                                    <li><a href="#" key="Açık Hesaplar"></a></li>
+                                    <li><a href="tedarikci.html" key="Tedarikçiler"></a></li>
+                                    <li><a href="#" key="Ödeme Koşulları"></a></li>
+                                    <li><a href="#" key="Teslimat KOşulları"></a></li>
+                                    <li><a href="bilgi-defteri.html">Bilgi Defteri</a></li>
+                                </ul>
+                            </div>
+                            <div class="sub-menu-grup">
+                                <div class="sub-menu-grup-title"><span>Alış 2</span></div>
+                                <ul>
+                                    <li><a href="kategori.html" key="Alış Faturaları"></a></li>
+                                    <li><a href="#" key="Açık Hesaplar"></a></li>
+                                    <li><a href="tedarikci.html" key="Tedarikçiler"></a></li>
+                                    <li><a href="#" key="Ödeme Koşulları"></a></li>
+                                    <li><a href="#" key="Teslimat KOşulları"></a></li>
+                                    <li><a href="bilgi-defteri.html">Bilgi Defteri</a></li>
+                                </ul>
+                            </div>
+                            <div class="sub-menu-grup">
+                                <div class="sub-menu-grup-title"><span>Deneme</span></div>
+                                <ul>
+                                    <li><a href="kategori.html">Faturalar</a></li>
+                                    <li><a href="#">Hanimiş Faturalar</a></li>
+                                    <li><a href="tedarikci.html">Paracıklar</a></li>
+                                    <li><a href="#">Çok Para Lazım</a></li>
+                                    <li><a href="#">Giren Faturalar</a></li>
+                                    <li><a href="#">Para Var mı?</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sub-menu-end">
+                        <div class="sub-menu-grup-title"><span>Buda Deneme</span></div>
+                        <ul>
+                            <li><a href="kategori.html">Faturalar</a></li>
+                            <li><a href="#">Hanimiş Faturalar</a></li>
+                            <li><a href="tedarikci.html">Paracıklar</a></li>
+                            <li><a href="#">Çok Para Lazım</a></li>
+                            <li><a href="#">Giren Faturalar</a></li>
+                            <li><a href="#">Para Var mı?</a></li>
+                            <li><a href="#">Bana EURO Lazım</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-li">
+                <div class="iocn-link">
+                    <a href="#">
+                        <i class='bx bx-pie-chart-alt-2'></i>
+                        <span class="link_name" key="Satış"></span>
+                    </a>
+                    <i class='bx bxs-chevron-down arrow'></i>
+                </div>
+                <div class="sub-menu">
+                    <div class="sub-menu-content">
+                        <div class="sub-menu-grups">
+                            <div class="sub-menu-grup">
+                                <div class="sub-menu-grup-title link_name"><span>Satış</span></div>
+                                <ul>
+                                    <li><a href="#" key="Satış Faturaları"></a></li>
+                                    <li><a href="musteri.html" key="Müşteriler"></a></li>
+                                    <li><a href="#" key="Açık Hesaplar"></a></li>
+                                    <li><a href="#" key="Hatırlatmalar"></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sub-menu-end">
+                        <div class="sub-menu-grup-title"><span>Buda Deneme</span></div>
+                        <ul>
+                            <li><a href="kategori.html">Faturalar</a></li>
+                            <li><a href="#">Hanimiş Faturalar</a></li>
+                            <li><a href="tedarikci.html">Paracıklar</a></li>
+                            <li><a href="#">Çok Para Lazım</a></li>
+                            <li><a href="#">Giren Faturalar</a></li>
+                            <li><a href="#">Para Var mı?</a></li>
+                            <li><a href="#">Bana EURO Lazım</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-li">
+                <div class="iocn-link">
+                    <a href="#">
+                        <i class='bx bx-line-chart'></i>
+                        <span class="link_name" key="Finansal"></span>
+                    </a>
+                    <i class='bx bxs-chevron-down arrow'></i>
+                </div>
+                <div class="sub-menu">
+                    <div class="sub-menu-content">
+                        <div class="sub-menu-grups">
+                            <div class="sub-menu-grup">
+                                <div class="sub-menu-grup-title link_name"><span>Finansal</span></div>
+                                <ul>
+                                    <li><a href="#" key="Kasalar"></a></li>
+                                    <li><a href="banka.html" key="Bankalar"></a></li>
+                                    <li><a href="banka1.html">Banka 1</a></li>
+                                    <li><a href="#" key="Memoriaal"></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-li">
+                <div class="iocn-link">
+                    <a href="#">
+                        <i class='bx bx-plug'></i>
+                        <span class="link_name" key="Kişiler"></span>
+                    </a>
+                    <i class='bx bxs-chevron-down arrow'></i>
+                </div>
+                <div class="sub-menu">
+                    <div class="sub-menu-content">
+                        <div class="sub-menu-grups">
+                            <div class="sub-menu-grup">
+                                <div class="sub-menu-grup-title link_name"><span>Kişiler</span></div>
+                                <ul>
+                                    <li><a href="#"">Kişiler</a></li>
+                <li><a href=" tedarikci.html" key="Tedarikçiler"></a></li>
+                                    <li><a href="#" key="Müşteriler"></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sub-menu-end">
+                        <div class="sub-menu-grup-title"><span>Buda Deneme</span></div>
+                        <ul>
+                            <li><a href="kategori.html">Faturalar</a></li>
+                            <li><a href="#">Hanimiş Faturalar</a></li>
+                            <li><a href="tedarikci.html">Paracıklar</a></li>
+                            <li><a href="#">Çok Para Lazım</a></li>
+                            <li><a href="#">Giren Faturalar</a></li>
+                            <li><a href="#">Para Var mı?</a></li>
+                            <li><a href="#">Bana EURO Lazım</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-li">
+                <div class="iocn-link">
+                    <a href="#">
+                        <i class='bx bx-cog'></i>
+                        <span class="link_name">Ayarlar</span>
+                    </a>
+                    <i class='bx bxs-chevron-down arrow'></i>
+                </div>
+                <div class="main-content">
+                    <div class="sub-menu">
+                        <div class="sub-menu-content">
+                            <div class="sub-menu-grups">
+                                <div class="sub-menu-grup-next">
+                                    <div class="sub-menu-grup">
+                                        <div class="sub-menu-grup-settings">
+                                            <div class="sub-menu-grup-title link_name ext"><span>Ayarlar</span></div>
+                                            <div class="sub-menu-two-li">
+                                                <div class="sub-menu-ext">
+                                                    <div class="title"><span>Admin Ayarları</span>
+                                                        <p>Admin Ayarlarını Yapılandır.</p>
+                                                    </div>
+                                                    <i class='bx bxs-chevron-down arrow'></i>
+                                                </div>
+                                                <div class="sub-menu-two">
+                                                    <div class="sub-menu-grup-title link_name ext"><span>Admin
+                                                            Ayarları</span></div>
+                                                    <ul>
+                                                        <li><a href="#">Yeni Kategori 1</a></li>
+                                                        <li><a href="#">Deneme Menü 1</a></li>
+                                                        <li><a href="#">Kuru Fasulye 1</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <div class="sub-menu-two-li">
+                                                <div class="sub-menu-ext">
+                                                    <div class="title"><span>Yönetici Kuralları</span>
+                                                        <p>Bu Kısımdan Yönetici Kuralları Ekle</p>
+                                                    </div>
+                                                    <i class='bx bxs-chevron-down arrow'></i>
+                                                </div>
+                                                <div class="sub-menu-two">
+                                                    <div class="sub-menu-grup-title link_name ext"><span>Yönetici
+                                                            Kuralları</span></div>
+                                                    <ul>
+                                                        <li><a href="#">Yeni Kategori 2</a></li>
+                                                        <li><a href="#">Deneme Menü 2</a></li>
+                                                        <li><a href="#">Kuru Fasulye 2</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <div class="sub-menu-two-li">
+                                                <div class="sub-menu-ext">
+                                                    <div class="title"><span>Kural Ekle</span>
+                                                        <p>Nasıl Kural Ekleyeceğini Biliyor musun?</p>
+                                                    </div>
+                                                    <i class='bx bxs-chevron-down arrow'></i>
+                                                </div>
+                                                <div class="sub-menu-two">
+                                                    <div class="sub-menu-grup-title link_name ext"><span>Kural
+                                                            Ekle</span></div>
+                                                    <ul>
+                                                        <li><a href="#">Yeni Kategori 3</a></li>
+                                                        <li><a href="#">Deneme Menü 3</a></li>
+                                                        <li><a href="#">Kuru Fasulye 3</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <div class="sub-menu-two-li">
+                                                <div class="sub-menu-ext">
+                                                    <div class="title"><span>Masraf Kategorisi</span>
+                                                        <p>Masraflar için Yeni Katgeori Ekle.</p>
+                                                    </div>
+                                                    <i class='bx bxs-chevron-down arrow'></i>
+                                                </div>
+                                                <div class="sub-menu-two">
+                                                    <div class="sub-menu-grup-title link_name ext"><span>Masraf
+                                                            Kategorisi</span></div>
+                                                    <ul>
+                                                        <li><a href="#">Yeni Kategori 4</a></li>
+                                                        <li><a href="#">Deneme Menü 4</a></li>
+                                                        <li><a href="#">Kuru Fasulye 4</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <div class="sub-menu-two-li">
+                                                <div class="sub-menu-ext">
+                                                    <div class="title"><span>KDV Oranları</span>
+                                                        <p>KDV Oranları Ekleyebiliriz.</p>
+                                                    </div>
+                                                    <i class='bx bxs-chevron-down arrow'></i>
+                                                </div>
+                                                <div class="sub-menu-two">
+                                                    <div class="sub-menu-grup-title link_name ext"><span>KDV
+                                                            Oranları</span></div>
+                                                    <ul>
+                                                        <li><a href="#">Yeni Kategori 5</a></li>
+                                                        <li><a href="#">Deneme Menü 5</a></li>
+                                                        <li><a href="#">Kuru Fasulye 5</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-li">
+                <div class="profile-details">
+                    <div class="profile-content">
+                        <img src="img/profile.jpg" alt="profileImg">
+                    </div>
+                    <div class="name-job">
+                        <div class="profile_name">İhsan Akyıldız</div>
+                        <div class="job">Web Desginer
+                            <a class="text-white" href="login.html">Giriş Yap</a>
+                        </div>
+                    </div>
+                    <i class='bx bx-log-out'></i>
+                </div>
+            </div>
+        </div>
+        <!-- ?Sub Menü UL Bitti -->
+    </div>
+    <!-- !Sidebar End -->
+
+    <nav class="navbar navbar-expand-lg py-0 bg-white border-bottom border-danger border-1 border-opacity-50 sticky-top"
+        style="height: 50px;">
+        <div class="container-fluid">
+            <div>
+                <i class='bx bx-menu' id="bx-menu" role="button"
+                    style="height: 50px; min-width: 78px; line-height: 50px; font-size: 20px; cursor: pointer;"></i>
+                <i class='bx bx-x d-none' id="bx-x" role="button"
+                    style="height: 50px; min-width: 78px; line-height: 50px; font-size: 20px; cursor: pointer;"></i>
+            </div>
+            <div
+                class="d-flex flex-row-reverse position-absolute align-items-center top-50 end-0 translate-middle-y pe-3">
+                <div class="btn-toolbar justify-content-between" role="toolbar" aria-label="Toolbar with button groups">
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-primary border-0 me-2" style="background: #1d2951;"
+                        data-bs-toggle="modal" data-bs-target="#settingsModal">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn border dropdown-toggle btn-primary" style="background: #1d2951;"
+                            type="button" id="drop_dil_Sec" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                            <i class="fa-solid fa-globe"></i>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item dilSec" id="tr" href="#"><img src="../img/lang/tr.png"> TR </a>
+                            <a class="dropdown-item dilSec" id="en" href="#"><img src="../img/lang/gb.png"> EN </a>
+                            <a class="dropdown-item dilSec" id="de" href="#"><img src="../img/lang/de.png"> DE </a>
+                            <a class="dropdown-item dilSec" id="nl" href="#"><img src="../img/lang/nl.png"> NL </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="pt-3 d-none d-sm-block d-md-none d-lg-block d-lg-none d-xl-block d-md-none d-lg-block d-sm-none d-md-block"
+                    style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);"
+                    aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="index.html" style="color: #424242;" key="Anasayfa"></a>
+                        </li>
+                        <li class="breadcrumb-item home" aria-current="page" style="color: #a09e9e;;">Dashboard</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="home-section pt-0" style="height: 100% !important;">
+        <div class="home-content">
+            <h3 class="pb-3 pt-3 ps-2">Debiteur France -</h3>
+            <ul class="nav nav-underline mb-3 ms-3">
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="../000017/overview.html">
+                        Relatiekaart</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="../000017/general.html">
+                        Bedrijfsgegevens</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../000017/contact.html">
+                        Contact</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../000017/communication.html">
+                        Communicatie</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../000017/openinvoices.html">
+                        Openstaande posten</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../000017/invoices.html">
+                        Facturen</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../000017/orders.html">
+                        Opdrachten</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../000017/salesStatistics.html">
+                        Statistieken</a>
+                </li>
+            </ul>
+            <main class="d-flex flex-nowrap">
+                <div class="container-fluid">
+
+                    <section class="padding-bottom-sm padding-top-sm mt-4">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="card" id="contentCard">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <span class="d-flex justify-content-between align-items-center">
+                                                    <p class="fs-3 text-dark-emphasis">Algemeen</p>
+                                                    <i class="fa-solid fa-pen" style="font-size: 18px; cursor:pointer"
+                                                        id="btnEditForm"></i>
+                                                </span>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Bedrijfsnaam</span>
+                                                    <p>France</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Zoeknaam*</span>
+                                                    <p>FRANCE</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class=" text-muted small">Land*</span>
+                                                    <p>NEDERLAND</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Taal</span>
+                                                    <p>Nederlands</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted">Btw-identificatienummer</span>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted">Laatste verificatie btw-nummer</span>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted">KVK Nummer</span>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted">Telefoon</span>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted">E-mail</span>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted">Website</span>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Vertegenwoordiger</span>
+                                                    <p>-</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Status</span>
+                                                    <p>Actiev</p>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <span>
+                                                    <p class="fs-3 text-dark-emphasis">Condities</p>
+                                                </span>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Betalingsconditie</span>
+                                                    <p>-</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Leveringsconditie</span>
+                                                    <p>-</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class=" text-muted small">Verzamelcode</span>
+                                                    <p>-</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Valuta</span>
+                                                    <p>EUR</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Btw</span>
+                                                    <p>Nee</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Kredietlimiet</span>
+                                                    <p>€ 0</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Korting</span>
+                                                    <p>0,00%</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Boeking debiteuren</span>
+                                                    <p>111000 debiteuren</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Boeking omzet</span>
+                                                    <p>810300 omzet</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">E-factuur (UBL)</span>
+                                                    <p>Nee</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Manen</span>
+                                                    <p>Ja</p>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <span class="text-muted small">Orderkosten berekenen</span>
+                                                    <p>Nee</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card" id="fomrCard" style="display: none;">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <span class="d-flex justify-content-between align-items-center">
+                                                    <p class="fs-3 text-dark-emphasis">Algemeen</p>
+                                                    <i class="fa-solid fa-xmark" style="font-size: 18px; cursor:pointer"
+                                                        id="btnCloseForm"></i>
+                                                </span>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Bedrijfsnaam" placeholder="Bedrijfsnaam"
+                                                                value="France">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Bedrijfsnaam">Bedrijfsnaam</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Zoeknaam" placeholder="Zoeknaam*" value="FRANCE">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Zoeknaam">Zoeknaam*</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Land" placeholder="Land*" value="NEDERLAND">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Land">Land*</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <select
+                                                            class="form-select shadow-none has-validation select-1 rounded-0"
+                                                            id="Taal" data-placeholder="Taal">
+                                                            <option value="1" selected>Nederlands</option>
+                                                            <option value="2">Engels</option>
+                                                        </select>
+                                                        <label for="Taal">Taal</label>
+                                                        <div class="valid-feedback">Başarılı Devam Et</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Btw-identificatienummer"
+                                                                placeholder="Btw-identificatienummer">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label
+                                                                for="Btw-identificatienummer">Btw-identificatienummer</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Laatste"
+                                                                placeholder="Laatste verificatie btw-nummer">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Laatste">Laatste verificatie
+                                                                btw-nummer</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="KVKNummer" placeholder="KVK Nummer">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="KVKNummer">KVK Nummer</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Telefoon" placeholder="Telefoon">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Telefoon">Telefoon</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Email" placeholder="E-mail">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Email">E-mail</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Website" placeholder="Website">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Website">Website</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Vertegenwoordiger" placeholder="Vertegenwoordiger">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Vertegenwoordiger">Vertegenwoordiger</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <select
+                                                            class="form-select shadow-none has-validation select-1 rounded-0"
+                                                            id="Status" data-placeholder="Status">
+                                                            <option value="1" selected>Actief</option>
+                                                            <option value="2">Passief</option>
+                                                        </select>
+                                                        <label for="Status">Status</label>
+                                                        <div class="valid-feedback">Başarılı Devam Et</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-5 mb-5">
+                                                <span>
+                                                    <p class="fs-3 text-dark-emphasis">Condities</p>
+                                                </span>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <select
+                                                            class="form-select shadow-none has-validation select-1 rounded-0"
+                                                            id="Betalingsconditie" data-placeholder="Betalingsconditie">
+                                                            <option value="3" selected>-</option>
+                                                            <option value="1">Betaling binnen 30 dagen</option>
+                                                            <option value="2">Betaling binnen 60 dagen</option>
+                                                        </select>
+                                                        <label for="Betalingsconditie">Betalingsconditie</label>
+                                                        <div class="valid-feedback">Başarılı Devam Et</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <select
+                                                            class="form-select shadow-none has-validation select-1 rounded-0"
+                                                            id="Leveringsconditie" data-placeholder="Leveringsconditie">
+                                                            <option value="3" selected>-</option>
+                                                            <option value="1">franco huis</option>
+                                                            <option value="2">pakketdienst</option>
+                                                            <option value="4">van gend & loos</option>
+                                                        </select>
+                                                        <label for="Leveringsconditie">Leveringsconditie</label>
+                                                        <div class="valid-feedback">Başarılı Devam Et</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <select
+                                                            class="form-select shadow-none has-validation select-1 rounded-0"
+                                                            id="Verzamelcode" data-placeholder="Verzamelcode">
+                                                            <option value="3" selected>-</option>
+                                                        </select>
+                                                        <label for="Verzamelcode">Verzamelcode</label>
+                                                        <div class="valid-feedback">Başarılı Devam Et</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <select
+                                                            class="form-select shadow-none has-validation select-1 rounded-0"
+                                                            id="Valuta" data-placeholder="Valuta">
+                                                            <option value="3" selected>EUR</option>
+                                                            <option value="1">DKK</option>
+                                                            <option value="2">NL</option>
+                                                        </select>
+                                                        <label for="Valuta">Valuta</label>
+                                                        <div class="valid-feedback">Başarılı Devam Et</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <select
+                                                            class="form-select shadow-none has-validation select-1 rounded-0"
+                                                            id="Btw" data-placeholder="Btw">
+                                                            <option value="3" selected>Nee</option>
+                                                            <option value="1">ja</option>
+                                                            <option value="2">Verlegd</option>
+                                                        </select>
+                                                        <label for="Btw">Btw</label>
+                                                        <div class="valid-feedback">Başarılı Devam Et</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Kredietlimiet" placeholder="Kredietlimiet"
+                                                                value="€ 0">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Kredietlimiet">Kredietlimiet</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Korting" placeholder="Korting" value="0,00%">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Korting">Korting</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Boekingdebiteuren" placeholder="Boeking debiteuren"
+                                                                value="111000 debiteuren">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Boekingdebiteuren">Boeking debiteuren</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <div class="input-data">
+                                                            <input type="text"
+                                                                class="form-control has-validation shadow-none rounded-0"
+                                                                id="Boekingomzet" placeholder="Boeking omzet"
+                                                                value="111000 debiteuren">
+                                                            <div class="altcizgi"></div>
+                                                            <div class="invalid-feedback"></div>
+                                                            <div class="valid-feedback">Başarılı Devam Et</div>
+                                                            <label for="Boekingomzet">810300 omzet</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <select
+                                                            class="form-select shadow-none has-validation select-1 rounded-0"
+                                                            id="E-factuur" data-placeholder="E-factuur (UBL)">
+                                                            <option value="3" selected>Nee</option>
+                                                            <option value="1">ja</option>
+                                                            <option value="2">Verlegd</option>
+                                                        </select>
+                                                        <label for="E-factuur">E-factuur (UBL)</label>
+                                                        <div class="valid-feedback">Başarılı Devam Et</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <select
+                                                            class="form-select shadow-none has-validation select-1 rounded-0"
+                                                            id="Manen" data-placeholder="Manen">
+                                                            <option value="3">Nee</option>
+                                                            <option value="1" selected>ja</option>
+                                                            <option value="2">Verlegd</option>
+                                                        </select>
+                                                        <label for="Manen">Manen</label>
+                                                        <div class="valid-feedback">Başarılı Devam Et</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mt-4">
+                                                    <div class="form-floating has-validation">
+                                                        <select
+                                                            class="form-select shadow-none has-validation select-1 rounded-0"
+                                                            id="Orderkostenberekenen" data-placeholder="Orderkosten
+                                                            berekenen">
+                                                            <option value="3" selected>Nee</option>
+                                                            <option value="1">ja</option>
+                                                            <option value="2">Verlegd</option>
+                                                        </select>
+                                                        <label for="Orderkostenberekenen">Orderkosten berekenen</label>
+                                                        <div class="valid-feedback">Başarılı Devam Et</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center pb-4">
+                                                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                                                    <button
+                                                        class="btn btn-outline-light text-dark border">Verwijderen</button>
+                                                </div>
+                                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                                    <button
+                                                        class="btn btn-outline-light text-dark border">Annuleren</button>
+                                                    <button class="btn btn-primary">Annuleren</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h3 class="text-dark-emphasis">Bankrekeningen</h3>
+                                                <i class="fa-solid fa-plus" style="font-size: 22px; cursor:pointer"
+                                                    data-bs-toggle="modal" data-bs-target="#Modal-1"></i>
+                                            </div>
+                                            <p class="pt-5">Geen bankrekeningen</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </section>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../JS/all.min.js" type="text/javascript"></script>
+    <script src="../JS/select2.min.js"></script>
+    <script defer src="../JS/sidebar.js"></script>
+    <script defer src="../JS/select2.js"></script>
+    <script defer src="../JS/autocompleteDropdown.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="../JS/charts.js"></script>
+    <script defer src="../JS/languages.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            $('#btnEditForm').click(function () {
+                $('#fomrCard').show();
+                $('#contentCard').hide();
+            });
+            $('#btnCloseForm').click(function () {
+                $('#contentCard').show();
+                $('#fomrCard').hide();
+            });
+        })
+    </script>
+
+
+</body>
+
+</html>

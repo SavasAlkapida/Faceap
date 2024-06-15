@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Yüksek Puanlı Ürünler</title>
+</head>
+<body>
+    <h1>Yüksek Puanlı Ürünler</h1>
+    <ul>
+        {% for product in product_score %}
+            <li>
+                <strong>{{ product.name }}</strong> - {{ product.score_total }} puan
+                <br>
+                Son 6 ay satış: {{ product.sold_6_months }}
+                <br>
+                Fiyat: {{ product.price }} {{ product.currency }}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

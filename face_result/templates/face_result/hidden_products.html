@@ -1,0 +1,39 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hidden Products List</title>
+</head>
+<body>
+    <h1>Hidden Products List</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Product Name</th>
+                <th>Category Path</th>
+                <th>Total Score</th>
+                <th>Cost Price</th>
+                <th>Extra Price</th>
+                <th>Advertised Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><a href="{% url 'product_detail' product.pk %}">{{ product.name }}</a></td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.category_path }}</td>
+                <td>{{ product.total_score }}</td>
+                <td>{{ product.cost_price }}</td>
+                <td>{{ product.extra_price|euro_format }}</td>
+                <td>{{ product.advertised_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'product_list' %}">Ürün Listesine Dön</a>
+</body>
+</html>
