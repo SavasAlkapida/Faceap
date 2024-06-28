@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 import environ
 from celery.schedules import crontab
 
+
 # BASE_DIR değişkenini tanımlayın
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -64,6 +65,7 @@ INSTALLED_APPS = [
     'face_result',
     'ocrapp',
     'access_tokens',
+    'djmoney',
     'corsheaders',
     'widget_tweaks',
     "tweetapp.apps.TweetappConfig",
