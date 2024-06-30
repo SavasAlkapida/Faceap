@@ -204,5 +204,50 @@ class DailyProductData(models.Model):
     
     
 
+
+class Post(models.Model):
+    post_code = models.CharField(max_length=255, verbose_name="Gönderi Kodu")
+    page_code = models.CharField(max_length=255, verbose_name="Sayfa Kodu")
+    page_name = models.CharField(max_length=255, verbose_name="Sayfa Adı")
+    description = models.TextField(verbose_name="Açıklama")
+    duration = models.IntegerField(verbose_name="Süre (sn)")
+    publication_time = models.DateTimeField(verbose_name="Yayınlanma Zamanı", default=timezone.now)
+    subtitle_type = models.CharField(max_length=255, verbose_name="Altyazı Türü")
+    permalink = models.URLField(verbose_name="Sabit Bağlantı")
+    cross_sharing = models.CharField(max_length=255, verbose_name="Çapraz Paylaşım")
+    sharing = models.CharField(max_length=255, verbose_name="Paylaşım")
+    post_type = models.CharField(max_length=255, verbose_name="Gönderi Türü")
+    languages = models.CharField(max_length=255, verbose_name="Diller")
+    special_tags = models.CharField(max_length=255, verbose_name="Özel Etiketler")
+    sponsored_content_status = models.CharField(max_length=255, verbose_name="Finansmanlı içerik durumu")
+    data_commentary = models.TextField(verbose_name="Veri yorumu")
+    date = models.DateField(verbose_name="Tarih", default=timezone.now)
+    impressions = models.IntegerField(verbose_name="Gösterimler")
+    reach = models.IntegerField(verbose_name="Erişim")
+    reactions = models.IntegerField(verbose_name="İfadeler")
+    comments = models.IntegerField(verbose_name="Yorumlar", default=0)
+    shares = models.IntegerField(verbose_name="Paylaşımlar", default=0)
+    total_clicks = models.IntegerField(verbose_name="Toplam Tıklamalar", default=0)
+    link_clicks = models.IntegerField(verbose_name="Bağlantı Tıklamaları", default=0)
+    target_audience_photo_click = models.IntegerField(verbose_name="Eşleşen Hedef Kitle Tüketim Hedeflemesi (Photo Click)", default=0)
+    other_clicks = models.IntegerField(verbose_name="Diğer Tıklamalar", default=0)
+    target_audience_video_click = models.IntegerField(verbose_name="Eşleşen Hedef Kitle Tüketim Hedeflemesi (Video Click)", default=0)
+    negative_feedback_hide_all = models.IntegerField(verbose_name="Kullanıcılardan olumsuz görüşler: Tümünü Gizle", default=0)
+    reels_plays_count = models.IntegerField(verbose_name="REELS_PLAYS:COUNT", default=0)
+    second_views = models.IntegerField(verbose_name="Saniye görüntülemeler", default=0)
+    average_second_views = models.FloatField(verbose_name="Ortalama Saniye görüntülemeler", default=0.0)
+    estimated_earnings = models.FloatField(verbose_name="Tahmini Kazançlar (ABD Doları)", default=0.0)
+    ad_cpm = models.FloatField(verbose_name="Reklam CPM'si (ABD Doları)", default=0.0)
+    ad_impressions = models.IntegerField(verbose_name="Reklam gösterimleri", default=0)
+
+    def __str__(self):
+        return self.description
     
+class Postd(models.Model):
+    question1 = models.CharField(max_length=255, verbose_name="deneme1")
+    question2 = models.CharField(max_length=255, verbose_name="deneme2")
+    question3 = models.CharField(max_length=255, verbose_name="deneme3")
     
+
+    def __str__(self):
+        return self.question1    

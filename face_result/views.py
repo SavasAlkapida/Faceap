@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .forms import AdvertisementForm, SearchForm, UploadFileForm
-from .models import Advertisement, Product, AdvertisedHistory, SocialMediaPost, ScoreViewHistory
+from .forms import AdvertisementForm, SearchForm, UploadFileForm, UploadFileForm2
+from .models import Advertisement, Product, AdvertisedHistory, SocialMediaPost, ScoreViewHistory, Post, Postd
 import requests
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
@@ -145,18 +145,6 @@ def list_social_media_posts(request):
     return render(request, 'face_result/social_media_posts.html', {'posts': posts})
 
 
-def upload_file(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            message = handle_uploaded_file(request.FILES['file'])
-            messages.success(request, message)
-            return HttpResponse(message)
-        else:
-            return HttpResponseBadRequest("advertisement_list")
-    else:
-        form = UploadFileForm()
-        return render(request, 'face_result/upload.html', {'form': form})
 
 
 def advertisement_list(request):
@@ -442,3 +430,110 @@ def hidden_products(request):
     )[:200]
 
     return render(request, "face_result/hidden_products.html", {"products": products})
+
+def upload_file(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            excel_file = request.FILES['file']
+            try:
+                # Excel dosyasını okuyun
+                df = pd.read_excel(excel_file, engine='openpyxl')
+                
+                # Sütun isimlerini kontrol edin
+                print(df.columns)
+
+                for index, row in df.iterrows():
+                    # Tarih ve saat verilerini kontrol edin ve dönüştürün
+                    publication_time = pd.to_datetime(row['Yayınlanma Zamanı'], errors='coerce')
+                    date = pd.to_datetime(row['Tarih'], errors='coerce').date()
+
+                    # NaT ve NaN değerlerini varsayılan bir değer ile değiştirin
+                    if pd.isna(publication_time):
+                        publication_time = pd.Timestamp('1970-01-01')
+                    if pd.isna(date):
+                        date = pd.Timestamp('1970-01-01').date()
+                    
+                    target_audience_photo_click = row['Eşleşen Hedef Kitle Tüketim Hedeflemesi (Photo Click)'] if pd.notna(row['Eşleşen Hedef Kitle Tüketim Hedeflemesi (Photo Click)']) else 0
+                    other_clicks = row['Diğer Tıklamalar'] if pd.notna(row['Diğer Tıklamalar']) else 0
+                    target_audience_video_click = row['Eşleşen Hedef Kitle Tüketim Hedeflemesi (Video Click)'] if pd.notna(row['Eşleşen Hedef Kitle Tüketim Hedeflemesi (Video Click)']) else 0
+                    negative_feedback_hide_all = row['Kullanıcılardan olumsuz görüşler: Tümünü Gizle'] if pd.notna(row['Kullanıcılardan olumsuz görüşler: Tümünü Gizle']) else 0
+                    link_clicks = row['Bağlantı Tıklamaları'] if pd.notna(row['Bağlantı Tıklamaları']) else 0
+
+                    Post.objects.create(
+                        post_code=row['Gönderi Kodu'],
+                        page_code=row['Sayfa Kodu'],
+                        page_name=row['Sayfa Adı'],
+                        description=row['Açıklama'],
+                        duration=row['Süre (sn)'],
+                        publication_time=publication_time,
+                        subtitle_type=row['Altyazı Türü'],
+                        permalink=row['Sabit Bağlantı'],
+                        cross_sharing=row['Çapraz Paylaşım'],
+                        sharing=row['Paylaşım'],
+                        post_type=row['Gönderi Türü'],
+                        languages=row['Diller'],
+                        special_tags=row['Özel Etiketler'],
+                        sponsored_content_status=row['Finansmanlı içerik durumu'],
+                        data_commentary=row['Veri yorumu'],
+                        date=date,
+                        impressions=row['Gösterimler'],
+                        reach=row['Erişim'],
+                        reactions=row['İfadeler'],
+                        comments=row['Yorumlar'],
+                        shares=row['Paylaşımlar'],
+                        total_clicks=row['Toplam Tıklamalar'],
+                        link_clicks=link_clicks,
+                        target_audience_photo_click=target_audience_photo_click,
+                        other_clicks=other_clicks,
+                        target_audience_video_click=target_audience_video_click,
+                        negative_feedback_hide_all=negative_feedback_hide_all,
+                        reels_plays_count=row['REELS_PLAYS:COUNT'] if pd.notna(row['REELS_PLAYS:COUNT']) else 0,
+                        second_views=row['Saniye görüntülemeler'] if pd.notna(row['Saniye görüntülemeler']) else 0,
+                        average_second_views=row['Ortalama Saniye görüntülemeler'] if pd.notna(row['Ortalama Saniye görüntülemeler']) else 0.0,
+                        estimated_earnings=row['Tahmini Kazançlar (ABD Doları)'] if pd.notna(row['Tahmini Kazançlar (ABD Doları)']) else 0.0,
+                        ad_cpm=row['Reklam CPM\'si (ABD Doları)'] if pd.notna(row['Reklam CPM\'si (ABD Doları)']) else 0.0,
+                        ad_impressions=row['Reklam gösterimleri'] if pd.notna(row['Reklam gösterimleri']) else 0
+                    )
+                
+                return HttpResponse("Dosya başarıyla yüklendi ve işlendi.")
+            except Exception as e:
+                return HttpResponse(f"Dosya işlenirken bir hata oluştu: {str(e)}")
+    else:
+        form = UploadFileForm()
+    return render(request, 'face_result/upload.html', {'form': form})
+
+def upload_file_den(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            excel_file = request.FILES['file']
+            try:
+                df = pd.read_excel(excel_file, engine='openpyxl')
+                # Sütun isimlerini kontrol edin
+                print(df.columns)
+                
+                for index, row in df.iterrows():
+                    Postd.objects.create(
+                        question1=row['deneme1'],
+                        question2=row['deneme2'],
+                        question3=row['deneme3'],
+                        
+                    )
+                
+                return HttpResponse("Dosya başarıyla yüklendi ve işlendi.")
+            except Exception as e:
+                return HttpResponse(f"Dosya işlenirken bir hata oluştu: {str(e)}")
+             
+    else:
+        form = UploadFileForm()
+    return render(request, 'face_result/upload.html', {'form': form})
+
+def post_list(request):
+    order_by = request.GET.get('order_by', '-total_clicks')  # Default sıralama
+    direction = request.GET.get('direction', 'asc')  # Default yön
+    if direction == 'desc':
+        order_by = f'-{order_by}'
+
+    posts = Post.objects.all().order_by(order_by)
+    return render(request, 'face_result/post_list.html', {'posts': posts, 'order_by': order_by, 'direction': direction})

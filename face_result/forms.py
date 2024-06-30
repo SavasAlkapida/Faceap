@@ -19,5 +19,20 @@ class SearchForm(forms.Form):
     query = forms.CharField(label='Search', max_length=200, required=False)        
     
 class UploadFileForm(forms.Form):
-    file = forms.FileField()  
+    file = forms.FileField(label='Excel Dosyasını Yükleyin')
+
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        if not file.name.endswith('.xlsx'):
+            raise forms.ValidationError("Yalnızca .xlsx uzantılı dosyalar yükleyebilirsiniz.")
+        return file
+
+class UploadFileForm2(forms.Form):
+    file = forms.FileField(label='Excel Dosyasını Yükleyin')
+
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        if not file.name.endswith('.xlsx'):
+            raise forms.ValidationError("Yalnızca .xlsx uzantılı dosyalar yükleyebilirsiniz.")
+        return file    
     

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gönderi Listesi</title>
+    <style>
+        th {
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        function sortTable(column) {
+            const currentUrl = new URL(window.location);
+            const currentOrderBy = currentUrl.searchParams.get('order_by');
+            const currentDirection = currentUrl.searchParams.get('direction');
+
+            let newDirection = 'asc';
+            if (currentOrderBy === column && currentDirection === 'asc') {
+                newDirection = 'desc';
+            }
+
+            currentUrl.searchParams.set('order_by', column);
+            currentUrl.searchParams.set('direction', newDirection);
+
+            window.location = currentUrl;
+        }
+    </script>
+</head>
+<body>
+    <h1>Gönderi Listesi</h1>
+    <table border="1">
+        <tr>
+            <th onclick="sortTable('description')">Açıklama</th>
+            <th onclick="sortTable('duration')">Süre (sn)</th>
+            <th onclick="sortTable('publication_time')">Yayınlanma Zamanı</th>
+            <th>Reklama Git</th>
+            <th onclick="sortTable('post_type')">Gönderi Türü</th>
+            <th onclick="sortTable('languages')">Diller</th>
+            <th onclick="sortTable('impressions')">Gösterimler</th>
+            <th onclick="sortTable('reach')">Erişim</th>
+            <th onclick="sortTable('reactions')">İfadeler</th>
+            <th onclick="sortTable('comments')">Yorumlar</th>
+            <th onclick="sortTable('shares')">Paylaşımlar</th>
+            <th onclick="sortTable('total_clicks')">Toplam Tıklamalar</th>
+            <th onclick="sortTable('link_clicks')">Bağlantı Tıklamaları</th>
+            <th onclick="sortTable('target_audience_photo_click')">Eşleşen Hedef Kitle Tüketim Hedeflemesi (Photo Click)</th>
+            <th onclick="sortTable('other_clicks')">Diğer Tıklamalar</th>
+            <th onclick="sortTable('target_audience_video_click')">Eşleşen Hedef Kitle Tüketim Hedeflemesi (Video Click)</th>
+            <th onclick="sortTable('second_views')">Saniye görüntülemeler</th>
+            <th onclick="sortTable('average_second_views')">Ortalama Saniye görüntülemeler</th>
+            <th onclick="sortTable('estimated_earnings')">Tahmini Kazançlar (ABD Doları)</th>
+            <th onclick="sortTable('ad_cpm')">Reklam CPM'si (ABD Doları)</th>
+            <th onclick="sortTable('ad_impressions')">Reklam gösterimleri</th>
+        </tr>
+        {% for post in posts %}
+        <tr>
+            <td>{{ post.description }}</td>
+            <td>{{ post.duration }}</td>
+            <td>{{ post.publication_time }}</td>
+            <td><a href="{{ post.permalink }}" target="_blank">Reklama Git</a></td>
+            <td>{{ post.post_type }}</td>
+            <td>{{ post.languages }}</td>
+            <td>{{ post.impressions }}</td>
+            <td>{{ post.reach }}</td>
+            <td>{{ post.reactions }}</td>
+            <td>{{ post.comments }}</td>
+            <td>{{ post.shares }}</td>
+            <td>{{ post.total_clicks }}</td>
+            <td>{{ post.link_clicks }}</td>
+            <td>{{ post.target_audience_photo_click }}</td>
+            <td>{{ post.other_clicks }}</td>
+            <td>{{ post.target_audience_video_click }}</td>
+            <td>{{ post.second_views }}</td>
+            <td>{{ post.average_second_views }}</td>
+            <td>{{ post.estimated_earnings }}</td>
+            <td>{{ post.ad_cpm }}</td>
+            <td>{{ post.ad_impressions }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
