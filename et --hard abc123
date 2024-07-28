@@ -1,0 +1,61 @@
+[33mcommit fa1f163c0fe856f1e6817caf742dc9d376dfb31a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: SavasAlkapida <savas@alkapida.com>
+Date:   Sun Jul 28 15:20:58 2024 +0200
+
+    Add db.sqlite3 to Git LFS
+
+[33mcommit fd8ad79703e3a4717d19f5f20783a4f0d687aa22[m
+Author: SavasAlkapida <savas@alkapida.com>
+Date:   Sun Jul 28 15:04:55 2024 +0200
+
+    Initial commit
+
+[33mcommit c76dc0c183aa1bd6b6f1e16b7713b7080e8f5583[m
+Author: SavasAlkapida <savas@alkapida.com>
+Date:   Sun Jun 30 17:51:02 2024 +0200
+
+    commit 3
+
+[33mcommit cdc5677616b5ba8565aadf73c8a3044d4347b4a7[m
+Author: SavasAlkapida <savas@alkapida.com>
+Date:   Sun Jun 30 16:52:30 2024 +0200
+
+    commit 2
+
+[33mcommit 73fcace7facdad0b87243dd3d5a15e29a0510da1[m
+Author: SavasAlkapida <savas@alkapida.com>
+Date:   Sat Jun 29 00:07:47 2024 +0200
+
+    Commit mesajı burada
+
+[33mcommit f56df40c9247a95e2f88e36b0b5b69c72c85b15d[m
+Merge: 2812083 89c5e0e
+Author: SavasAlkapida <savas@alkapida.com>
+Date:   Fri Jun 28 18:18:44 2024 +0200
+
+    Çakışmalar çözüldü
+
+[33mcommit 89c5e0ef462d721d936b4e1bf6ee3b4be9d23aa0[m
+Author: SavasAlkapida <134631636+SavasAlkapida@users.noreply.github.com>
+Date:   Fri Jun 28 19:07:27 2024 +0300
+
+    Initial commit
+
+[33mcommit 2812083a9c5dca1f148411c395debca07a59bdbe[m
+Merge: 0044a37 72c87d6
+Author: SavasAlkapida <savas@alkapida.com>
+Date:   Sat Jun 15 22:23:59 2024 +0200
+
+    Initial commit
+
+[33mcommit 0044a37bfed720662bc1e1a0c9c2db5fb27a58b5[m
+Author: SavasAlkapida <savas@alkapida.com>
+Date:   Sat Jun 15 21:59:06 2024 +0200
+
+    Initial commit
+
+[33mcommit 72c87d63a65a674540f676a5fba8876b13f1d0f5[m
+Author: SavasAlkapida <134631636+SavasAlkapida@users.noreply.github.com>
+Date:   Sat Jun 15 21:07:13 2024 +0200
+
+    Initial commit

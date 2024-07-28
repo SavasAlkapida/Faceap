@@ -1,0 +1,14 @@
+django
+celery
+django-money
+django-cors-headers
+django-celery-beat
+pdf2image
+pillow
+azure-identity
+azure-communication-identity
+azure-ai-formrecognizer
+openpyxl
+dotenv
+environ
+widget_tweaks
