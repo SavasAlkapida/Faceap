@@ -1,0 +1,39 @@
+<!-- templates/product_list.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product List</title>
+</head>
+<body>
+    <h1>Product List</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Sıra No</th>
+                <th>Product ID</th>
+                <th>Name</th>
+                <th>Score View</th>
+                <th>Score View x2</th>
+                <th>nieuw_score_multipler</th>
+                <th>nieuwe_score_divide</th>
+                <!-- Diğer sütunlar -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.product_id}}</td>
+                <td>{{ product.product_name}}</td>
+                <td>{{ product.product_brand }}</td>
+                <td>{{ product.score_view }}</td>
+                <td>{{ product.score_view_multiplier }}</td>
+                <td>{{ product.nieuw_score_multipler }}</td>
+                <td>{{ product.nieuwe_score_divide }}</td>
+                <!-- Diğer sütunlar -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

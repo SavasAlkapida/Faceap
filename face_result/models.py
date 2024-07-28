@@ -69,9 +69,9 @@ class SocialMediaPost(models.Model):
 class Product(models.Model):
     product_id = models.CharField(max_length=255, unique=True)
     product_code = models.CharField(max_length=255, null=True, blank=True)
-    barcode = models.CharField(max_length=255, null=True, blank=True)
     name = models.TextField()
     brand = models.CharField(max_length=255, null=True, blank=True)
+    barcode = models.CharField(max_length=255, null=True, blank=True)  # Örnek tanım
     description = models.TextField()
     price = models.FloatField()
     currency = models.CharField(max_length=10)
@@ -90,12 +90,89 @@ class Product(models.Model):
     active = models.IntegerField()
     is_advertised = models.BooleanField(default=False)
     advertised_date = models.DateField(null=True, blank=True)
+    score_view_updated = models.BooleanField(default=False)
+    score_total_updated = models.BooleanField(default=False)
     
 
     
     def __str__(self):
         return self.name    
     
+    def get_impressions(self):
+        try:
+            post = FacebookPost.objects.get(post_id=self.product_id)
+            return post.impressions
+        except FacebookPost.DoesNotExist:
+            return None    
+    
+    
+        
+    def get_publication_time(self):
+        try:
+            post = Post.objects.get(post_code=self.product_id)
+            return post.publication_time
+        except Post.DoesNotExist:
+            return None
+    
+    
+            
+    def get_extracted_number(self):
+        try:
+            post = FacebookPost.objects.get(extracted_number=self.product_id)
+            return post.extracted_number
+        except FacebookPost.DoesNotExist:
+            return None
+    def get_message(self):
+        try:
+            post = FacebookPost.objects.get(extracted_number=self.product_id)
+            return post.message
+        except FacebookPost.DoesNotExist:
+            return None
+    
+    def get_full_picture(self):
+        try:
+            post = FacebookPost.objects.get(extracted_number=self.product_id)
+            return post.full_picture
+        except FacebookPost.DoesNotExist:
+            return None
+    def get_impressions_face(self):
+        try:
+            post = FacebookPost.objects.get(extracted_number=self.product_id)
+            return post.impressions
+        except FacebookPost.DoesNotExist:
+            return None
+    def get_clicks(self):
+        try:
+            post = FacebookPost.objects.get(extracted_number=self.product_id)
+            return post.clicks
+        except FacebookPost.DoesNotExist:
+            return None            
+        
+    def get_permalink(self):
+        try:
+            post = Post.objects.get(post_code=self.product_id)
+            return post.permalink
+        except Post.DoesNotExist:
+            return None
+        
+    def get_description(self):
+        try:
+            post = Post.objects.get(post_code=self.product_id)
+            return post.description
+        except Post.DoesNotExist:
+            return None    
+    def get_created_time(self):
+        try:
+            post = FacebookPost.objects.get(extracted_number=self.product_id)
+            return post.created_time
+        except FacebookPost.DoesNotExist:
+            return None     
+    def get_calculation_result(self):
+        try:
+            post = FacebookPost.objects.get(extracted_number=self.product_id)
+            return post.calculation_result
+        except FacebookPost.DoesNotExist:
+            return None     
     
 class AdvertisedHistory (models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='advertised_history')
@@ -251,3 +328,43 @@ class Postd(models.Model):
 
     def __str__(self):
         return self.question1    
+
+class FacebookPost(models.Model):
+    post_id = models.CharField(max_length=255, unique=True)
+    message = models.TextField(null=True, blank=True)
+    created_time = models.DateTimeField()
+    full_picture = models.URLField(null=True, blank=True)
+    impressions = models.IntegerField(default=0)
+    clicks = models.IntegerField(default=0)
+    shares = models.IntegerField(default=0)
+    likes = models.IntegerField(default=0)
+    extracted_number = models.CharField(max_length=255, null=True, blank=True)
+    clicks_unique = models.IntegerField(default=0)
+    page_total_actions = models.IntegerField(default=0)
+    other_clicks = models.IntegerField(default=0)
+    photo_view_clicks = models.IntegerField(default=0)
+    link_clicks = models.IntegerField(default=0)
+    calculation_result = models.IntegerField(default=0)
+    
+    def __str__(self):
+        return self.post_id
+
+class FacebookLike(models.Model):
+    post = models.ForeignKey(FacebookPost, on_delete=models.CASCADE, related_name='post_likes')
+    user_id = models.CharField(max_length=255)
+    user_name = models.CharField(max_length=255)
+    
+    def __str__(self):
+        return f"{self.user_name} liked {self.post.post_id}"
+
+class FacebookComment(models.Model):
+    post = models.ForeignKey(FacebookPost, on_delete=models.CASCADE, related_name='post_comments')
+    comment_id = models.CharField(max_length=255, unique=True)
+    user_id = models.CharField(max_length=255)
+    user_name = models.CharField(max_length=255)
+    message = models.TextField()
+    created_time = models.DateTimeField()
+
+    
+    def __str__(self):
+        return f"{self.user_name} commented on {self.post.post_id}"

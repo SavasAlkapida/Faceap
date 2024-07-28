@@ -17,7 +17,6 @@ from django.shortcuts import render
 from django.conf import settings
 from .forms import DocumentForm
 from azure.core.credentials import AzureKeyCredential
-from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeResult, AnalyzeDocumentRequest
 from azure.core.exceptions import HttpResponseError
 import re
@@ -227,47 +226,7 @@ def analyze_layout(request):
 
     return render(request, 'ocrapp/upload.html', {'form': form})
 
-def analyze_invoice(request):
-    if request.method == 'POST':
-        form = DocumentForm(request.POST, request.FILES)
-        if form.is_valid():
-            document_url = form.cleaned_data['document_url']
-            document_file = form.cleaned_data['document_file']
 
-            document_analysis_client = DocumentAnalysisClient(
-                endpoint=settings.AZURE_FORM_RECOGNIZER_ENDPOINT, 
-                credential=AzureKeyCredential(settings.AZURE_FORM_RECOGNIZER_KEY)
-            )
-
-            if document_url:
-                poller = document_analysis_client.begin_analyze_document_from_url(
-                    "prebuilt-invoice", document_url
-                )
-            else:
-                poller = document_analysis_client.begin_analyze_document(
-                    "prebuilt-invoice", document_file.read()
-                )
-
-            result = poller.result()
-
-            analysis_results = []
-            for idx, invoice in enumerate(result.documents):
-                analysis_results.append("--------Recognizing invoice #{}--------".format(idx + 1))
-                for field, value in invoice.fields.items():
-                    if value:
-                        analysis_results.append(
-                            "{}: {} has confidence: {}".format(
-                                field, value.value, value.confidence
-                            )
-                        )
-
-            return render(request, 'invoice_analysis_result.html', {
-                'result': analysis_results,
-            })
-    else:
-        form = DocumentForm()
-
-    return render(request, 'upload.html', {'form': form})
 
 def analyze_elio_sentences(request):
     if request.method == 'POST':

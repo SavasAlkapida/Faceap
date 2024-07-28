@@ -1,0 +1,28 @@
+<!-- your_template.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Combined Data by Barcode</title>
+</head>
+<body>
+    <h1>Combined Data by Barcode</h1>
+    <ul>
+        {% for item in combined_list %}
+            <li>
+                {% if item.product %}
+                    Product: {{ item.product.name }} - {{ item.product.description }} - Price: {{ item.product.price }} {{ item.product.currency }}
+                {% else %}
+                    Product: Not Available
+                {% endif %}
+
+                {% if item.post %}
+                    Post: {{ item.post.page_name }} - {{ item.post.description }} - Published: {{ item.post.publication_time }}
+                {% else %}
+                    Post: Not Available
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,15 +1,16 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import AdvertisementForm, SearchForm, UploadFileForm, UploadFileForm2
-from .models import Advertisement, Product, AdvertisedHistory, SocialMediaPost, ScoreViewHistory, Post, Postd
+from .models import Advertisement, Product, AdvertisedHistory, SocialMediaPost, ScoreViewHistory, Post, Postd, FacebookPost, FacebookComment, FacebookLike
 import requests
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 import openpyxl
 import pandas as pd
-import os
+import os, re
 import datetime
+from datetime import datetime
 import pytz
 from django.contrib import messages
 from django.urls import reverse
@@ -21,6 +22,7 @@ from .tasks import record_daily_score_view, fetch_xml_data
 from .utils import find_product_with_highest_score_increase
 from face_result.models import ProductChangeLog
 from django.db.models import F, ExpressionWrapper, DecimalField, Case, When, Value
+import time
 
 # datetime.timezone.utc yerine geçmek için
 from datetime import timezone as dt_timezone
@@ -174,10 +176,16 @@ def advertisement_list(request):
 def handle_uploaded_file(file):
     try:
         df = pd.read_excel(file, engine='openpyxl')
+
+        # NaN değerlerini sıfır ile doldur
         df['negative_feedback_from_users_hide_all'] = df['negative_feedback_from_users_hide_all'].fillna(0)
 
+        # Tarih ve zaman alanlarını dönüştür
         df['Yayınlanma Zamanı'] = pd.to_datetime(df['Yayınlanma Zamanı'], errors='coerce', utc=True)
         df['Tarih'] = pd.to_datetime(df['Tarih'], errors='coerce').dt.date
+
+        # Düzenli ifade deseni
+        pattern = r'"(\d+)"'
 
         for index, row in df.iterrows():
             if pd.notna(row['Yayınlanma Zamanı']) and not is_aware(row['Yayınlanma Zamanı']):
@@ -185,15 +193,26 @@ def handle_uploaded_file(file):
             else:
                 publish_time = row['Yayınlanma Zamanı']
 
+            # Tırnak içindeki sayıyı ayıklama
+            description = row['Açıklama']
+            if not isinstance(description, str):
+                description = str(description)  # 'description' alanını dizeye dönüştürün
+            match = re.search(pattern, description)
+            post_code = match.group(1) if match else None
+
+            if post_code is None:
+                # Eğer tırnak içinde sayı bulunamazsa bu satırı atla
+                continue
+
             obj, created = SocialMediaPost.objects.update_or_create(
-                post_code=row['Gönderi Kodu'],
+                post_code=post_code,
                 defaults={
                     'publish_time': publish_time,
                     'negative_feedback_from_users_hide_all': row['negative_feedback_from_users_hide_all'],
                     'page_code': row['Sayfa Kodu'],
                     'page_name': row['Sayfa Adı'],
                     'title': row['Unvan'],
-                    'description': row['Açıklama'],
+                    'description': description,
                     'duration_seconds': row['Süre (sn)'],
                     'subtitle_type': row['Altyazı Türü'],
                     'permalink': row['Sabit Bağlantı'],
@@ -215,8 +234,6 @@ def handle_uploaded_file(file):
                     'link_clicks': row['Bağlantı Tıklamaları'],
                     'other_clicks': row['Diğer Tıklamalar'],
                     'matched_target_audience_consumption_photo_click': row['Eşleşen Hedef Kitle Tüketim Hedeflemesi (Photo Click)'],
-                    'matched_target_audience_consumption_video_click': row['Eşleşen Hedef Kitle Tüketim Hedeflemesi (Video Click)'],
-                    'negative_feedback_from_users_hide_all': row['Kullanıcılardan olumsuz görüşler: Tümünü Gizle'],
                     'reels_plays_count': row['REELS_PLAYS:COUNT'],
                     'second_views': row['Saniye görüntülemeler'],
                     'average_second_views': row['Ortalama Saniye görüntülemeler'],
@@ -239,15 +256,27 @@ def parse_and_save(xml_data):
         barcode = item.find('barcode').text
         name = item.find('name').text
         brand = item.find('brand').text
-        price = float(item.find('price').text)
+        
+        # Virgül içeren stringleri nokta ile değiştirerek float'a çevir
+        price = float(item.find('price').text.replace(',', '.'))
+        cost_price = float(item.find('cost_price').text.replace(',', '.'))
+        
         currency = item.find('currency').text
-        cost_price = float(item.find('cost_price').text)
         cost_price_currency = item.find('cost_price_currency').text
         stock = int(item.find('stock').text)
-        score_sale = float(item.find('score_sale').text) if item.find('score_sale') is not None else None
-        score_price = float(item.find('score_price').text) if item.find('score_price') is not None else None
-        score_view = float(item.find('score_view').text) if item.find('score_view') is not None else None
-        score_total = float(item.find('score_total').text) if item.find('score_total') is not None else None
+        
+        score_sale = item.find('score_sale').text
+        score_sale = float(score_sale.replace(',', '.')) if score_sale else None
+        
+        score_price = item.find('score_price').text
+        score_price = float(score_price.replace(',', '.')) if score_price else None
+        
+        score_view = item.find('score_view').text
+        score_view = float(score_view.replace(',', '.')) if score_view else None
+        
+        score_total = item.find('score_total').text
+        score_total = float(score_total.replace(',', '.')) if score_total else None
+        
         days_online = int(item.find('days_online').text)
         sold_6_months = int(item.find('sold_6_months').text)
         viewed_90_days = int(item.find('viewed_90_days').text)
@@ -278,15 +307,42 @@ def parse_and_save(xml_data):
             }
         )
 
+    # XML güncellemesinden sonra tüm ürünlerin score_view_updated alanını False olarak ayarla
+    Product.objects.update(score_view_updated=False)
+
+    for product in Product.objects.filter(score_view_updated=False, score_total_updated=False):
+        product.score_total += 0.20
+        product.score_view_updated = True
+        product.save()  
+
 
 def fetch_xml_data(request):
     url = "https://www.alkapida.com/feeds/products/promotion-products.xml"
     response = requests.get(url)
     if response.status_code == 200:
         parse_and_save(response.content)
-        return HttpResponse("Data fetched and saved successfully")
+        message = "Alkapida XML i başarıyla güncellendi"
     else:
-        return HttpResponse(f"Failed to fetch data: {response.status_code}", status=400)
+        message = f"Malisef Alkapida XML güncellenmesinde bir hata yaşandı: {response.status_code}"
+    
+    # HTML ve JavaScript ile mesajı gösterip yönlendirme
+    html = f"""
+    <html>
+    <head>
+        <script type="text/javascript">
+            setTimeout(function() {{
+                window.location.href = "/face_result/product/";
+            }}, 5000);
+        </script>
+    </head>
+    <body>
+        <p>{message}</p>
+        <p>5 saniye içerisinde product sayfasına yönlendirileceksiniz</p>
+    </body>
+    </html>
+    """
+    
+    return HttpResponse(html)
 
 
 def start_fetch_xml_data(request):
@@ -368,13 +424,28 @@ def product_get(request):
         products_queryset = products_queryset.filter(sold_6_months__gt=sold_6_months_gt)
     if category_path:
         products_queryset = products_queryset.filter(category_path=category_path)
+        
+    
+            
 
     products = products_queryset.all()
-    products1 = products_queryset.filter(is_advertised=False).order_by(order_by)[:300]
+    products1 = products_queryset.filter(is_advertised=False).order_by(order_by)[:600]
     categories = Product.objects.values_list('category_path', flat=True).distinct()
 
+    products_with_impressions = []
+    for product in products1:
+        product_impressions = product.get_impressions()
+        product_extracted_number = product.get_extracted_number()
+        
+        
+        products_with_impressions.append({
+            'product': product,
+            'impressions': product_impressions,
+            'product_extracted_number': product_extracted_number,
+        })
+
     context = {
-        'products1': products1,
+        'products1': products_with_impressions,
         'products': products,
         'categories': categories,
         'selected_category_path': category_path,
@@ -390,10 +461,29 @@ def product_get(request):
 
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
+    posts = FacebookPost.objects.filter(extracted_number=product.product_id)
+    
+    posts_calculation_results = []
+
+    for post in posts:
+        if post.impressions is not None and post.page_total_actions is not None:
+            result = (float(post.impressions) / 300000) * post.page_total_actions
+            formatted_result = "{:.4f}".format(result)  # Sonucu 4 basamaklı formatla
+            mother_total = float(product.score_total) + float(formatted_result)
+            posts_calculation_results.append({
+                'post_id': post.post_id,
+                'result': formatted_result,
+                'impressions': post.impressions,
+                'page_total_actions': post.page_total_actions,
+                'product_id' : product.product_id,
+                'mother_total': mother_total
+            })
+            
     products_queryset = get_products_queryset()
 
     buy_score = products_queryset.filter(pk=pk).values_list('buy_price', flat=True).first
     sale_price = products_queryset.filter(pk=pk).values_list('extra_price', flat=True).first
+    
 
     if request.method == 'POST':
         product.is_advertised = 'is_advertised' in request.POST
@@ -405,13 +495,37 @@ def product_detail(request, pk):
         product.save()
 
     advertised_history = product.advertised_history.all()
+    impressions_face_excel = product.get_impressions()
+    impressions_face = product.get_impressions_face
+    masage_face_api = product.get_message
+    banner_face_api = product.get_full_picture
+    clik_face_api = product.get_clicks
+    created_time_face_api = product.get_created_time
+    
+    if impressions_face_excel is not None:
+        impressions_divided = impressions_face_excel / 100000
+    else:
+        impressions_divided = 0 
+    publication_time = product.get_publication_time()
+    perma_link = product.get_permalink()
+     
 
     context = {
         'product': product,
         'buy_score': buy_score,
         'sale_price': sale_price,
-        'advertised_history': advertised_history
-    }
+        'advertised_history': advertised_history,
+        'impressions_face_excel': impressions_face_excel,
+        'publication_time': publication_time,
+        'impressions_divided': impressions_divided,
+        'perma_link': perma_link,
+        'impressions_face' : impressions_face,
+        'masage_face_api' : masage_face_api,
+        'banner_face_api' : banner_face_api,
+        'clik_face_api' : clik_face_api,
+        'created_time_face_api' : created_time_face_api,
+        'result':posts_calculation_results
+        }
 
     return render(request, 'face_result/product_detail.html', context)
 
@@ -420,10 +534,14 @@ def hidden_products(request):
     products = Product.objects.annotate(
         total_score=F('score_total') + F('score_view'),
         buy_price=Case(
-            When(cost_price_currency="TRY", then=ExpressionWrapper((F("cost_price") / 36), output_field=DecimalField()))),
+            When(cost_price_currency="TRY", then=ExpressionWrapper(F("cost_price") / 36, output_field=DecimalField())),
+            default=F("cost_price"),
+            output_field=DecimalField()
+        ),
         extra_price=Case(
             When(cost_price_currency="TRY", then=ExpressionWrapper((F("cost_price") / 36) * 1.2, output_field=DecimalField())),
-            default=ExpressionWrapper(F("cost_price") * 1.2, output_field=DecimalField())
+            default=ExpressionWrapper(F("cost_price") * 1.2, output_field=DecimalField()),
+            output_field=DecimalField()
         )
     ).order_by('category_path', '-total_score').filter(
         is_advertised=True,
@@ -442,6 +560,8 @@ def upload_file(request):
                 
                 # Sütun isimlerini kontrol edin
                 print(df.columns)
+                
+                pattern = r'"(\d+)"'
 
                 for index, row in df.iterrows():
                     # Tarih ve saat verilerini kontrol edin ve dönüştürün
@@ -456,12 +576,18 @@ def upload_file(request):
                     
                     target_audience_photo_click = row['Eşleşen Hedef Kitle Tüketim Hedeflemesi (Photo Click)'] if pd.notna(row['Eşleşen Hedef Kitle Tüketim Hedeflemesi (Photo Click)']) else 0
                     other_clicks = row['Diğer Tıklamalar'] if pd.notna(row['Diğer Tıklamalar']) else 0
-                    target_audience_video_click = row['Eşleşen Hedef Kitle Tüketim Hedeflemesi (Video Click)'] if pd.notna(row['Eşleşen Hedef Kitle Tüketim Hedeflemesi (Video Click)']) else 0
-                    negative_feedback_hide_all = row['Kullanıcılardan olumsuz görüşler: Tümünü Gizle'] if pd.notna(row['Kullanıcılardan olumsuz görüşler: Tümünü Gizle']) else 0
                     link_clicks = row['Bağlantı Tıklamaları'] if pd.notna(row['Bağlantı Tıklamaları']) else 0
+                    
+                    description = row['Açıklama']
+                    match = re.search(pattern, description)
+                    post_code = match.group(1) if match else None
+                    
+                    if post_code is None:
+                        # Eğer tırnak içinde sayı bulunamazsa bu satırı atla
+                        continue
 
                     Post.objects.create(
-                        post_code=row['Gönderi Kodu'],
+                        post_code=post_code,
                         page_code=row['Sayfa Kodu'],
                         page_name=row['Sayfa Adı'],
                         description=row['Açıklama'],
@@ -537,3 +663,377 @@ def post_list(request):
 
     posts = Post.objects.all().order_by(order_by)
     return render(request, 'face_result/post_list.html', {'posts': posts, 'order_by': order_by, 'direction': direction})
+
+def combined_view(request):
+    products = Product.objects.all()
+    posts = Post.objects.all()
+    
+    # Barkodları eşleştirmek için bir sözlük yapısı kullanıyoruz
+    barcode_dict = {}
+
+    for product in products:
+        if product.barcode not in barcode_dict:
+            barcode_dict[product.barcode] = {'product': product, 'post': None}
+        else:
+            barcode_dict[product.barcode]['product'] = product
+
+    for post in posts:
+        if post.barcode not in barcode_dict:
+            barcode_dict[post.barcode] = {'product': None, 'post': post}
+        else:
+            barcode_dict[post.barcode]['post'] = post
+    
+    # Sözlüğü bir listeye dönüştürüyoruz
+    combined_list = list(barcode_dict.values())
+    
+    context = {
+        'combined_list': combined_list,
+    }
+    
+    return render(request, 'face_result/your_template.html', context)
+
+def exract_number_vieuw (request):
+    tekst = 'Hollanda Outlet Mağazamızda Sürpriz İndirimler Sizleri Bekliyor. "128396" Nucleonweg 1 4706 PZ Roosendaal'
+    pattern = r'(\d+)'
+    match = re.search(pattern, tekst)
+    number =match.group() if match else None
+    context = { 
+        'number': number,
+        'tekst': tekst,
+               
+    }
+    
+    
+    
+    return render(request, 'face_result/exract_number_vieuw.html', context)
+
+
+
+def facebook_login(request):
+    client_id = '471796758640308'  # Facebook Uygulama ID'niz
+    redirect_uri = 'http://localhost:8000/face_result/facebook-callback/'  # Yönlendirme URL'si
+    scope = 'pages_manage_metadata,pages_manage_posts,pages_read_engagement,pages_show_list'
+    auth_url = f"https://www.facebook.com/v10.0/dialog/oauth?client_id={client_id}&redirect_uri={redirect_uri}&scope={scope}"
+    return redirect(auth_url)
+
+def facebook_callback(request):
+    client_id = '471796758640308'
+    client_secret = '833b0b349df9417b0680bc43a46e6635'
+    redirect_uri = 'http://localhost:8000/face_result/facebook-callback/'
+    code = request.GET.get('code')
+
+    if not code:
+        return JsonResponse({'error': 'Authorization code not provided'}, status=400)
+
+    token_url = f"https://graph.facebook.com/v10.0/oauth/access_token?client_id={client_id}&redirect_uri={redirect_uri}&client_secret={client_secret}&code={code}"
+    token_response = requests.get(token_url)
+    
+    if token_response.status_code != 200:
+        return JsonResponse({'error': 'Failed to retrieve access token', 'details': token_response.json()}, status=token_response.status_code)
+    
+    token_data = token_response.json()
+    access_token = token_data.get('access_token')
+
+    if not access_token:
+        return JsonResponse({'error': 'Access token not found in response', 'details': token_data}, status=400)
+
+    # Kullanıcı bilgilerini al
+    user_info_url = f"https://graph.facebook.com/me?access_token={access_token}"
+    user_info_response = requests.get(user_info_url)
+    
+    if user_info_response.status_code != 200:
+        return JsonResponse({'error': 'Failed to retrieve user info', 'details': user_info_response.json()}, status=user_info_response.status_code)
+    
+    user_info = user_info_response.json()
+    user_id = user_info.get('id')
+
+    # Sayfa erişim tokenlerini al
+    pages_url = f"https://graph.facebook.com/{user_id}/accounts?access_token={access_token}"
+    pages_response = requests.get(pages_url)
+    
+    if pages_response.status_code != 200:
+        return JsonResponse({'error': 'Failed to retrieve pages info', 'details': pages_response.json()}, status=pages_response.status_code)
+    
+    pages_data = pages_response.json()
+
+    return JsonResponse(pages_data)
+
+def index(request):
+    return render(request, 'face_result/face.html')
+
+def publish_post(request):
+    # Kullanmak istediğiniz sayfanın erişim tokenini ve ID'sini alın
+    page_access_token = 'EAAGtGL40drQBO8ZCK8FxCVIMETXS1hUUU5ZAu9s32zLE7mti0Vhu8eKAHm444aaQhvwPLRZBoOZCEZAsazFNo5ZC4ydVeQjdPw2OG0HuNATEPaIG9rCSEwhn2tRmIdTSnnWylelRxbG8bT71Hb9KKI8wJlA5EzpI06ICZBTsg78xGzDxknNkdjQZBFxMZAZAY5TiAqpuTsjg4EMEQf7WNV'
+    page_id = '302596556573689'
+    
+    # Yayınlamak istediğiniz mesajı belirleyin
+    message = 'Bu bir test gönderisidir.'
+    
+    # API URL'si
+    post_url = f"https://graph.facebook.com/{page_id}/feed"
+    
+    # POST isteği için veriler
+    payload = {
+        'message': message,
+        'access_token': page_access_token
+    }
+    
+    response = requests.post(post_url, data=payload)
+    
+    if response.status_code == 200:
+        return JsonResponse({'message': 'Post published successfully!', 'response': response.json()})
+    else:
+        return JsonResponse({'error': 'Failed to publish post', 'details': response.json()}, status=response.status_code)
+
+def get_page_posts(access_token, since_timestamp):
+    page_id = "307752226016480"
+    url = f"https://graph.facebook.com/v20.0/{page_id}/posts"
+    params = {
+        "access_token": access_token,
+        "fields": "id,message,created_time,full_picture",
+        "since": '2024-07-20T00:00:00',
+        "limit": 20  # Bir sayfada döndürülecek maksimum gönderi sayısını belirtin
+    }
+    response = requests.get(url, params=params)
+    return response.json()
+
+def get_all_page_posts(access_token, since_timestamp):
+    posts = []
+    response = get_page_posts(access_token, since_timestamp)
+    posts.extend(response.get('data', []))
+    
+    while 'paging' in response and 'next' in response['paging']:
+        next_page_url = response['paging']['next']
+        response = requests.get(next_page_url).json()
+        posts.extend(response.get('data', []))
+    
+    return posts
+
+def get_post_insights(post_id, access_token):
+    url = f"https://graph.facebook.com/v20.0/{post_id}/insights"
+    params = {
+        "metric": "post_impressions,post_clicks,post_engaged_users,post_clicks_by_type,post_clicks_unique,page_total_actions",
+        "access_token": access_token
+    }
+    response = requests.get(url, params=params)
+    return response.json()
+
+def get_post_likes(post_id, access_token):
+    url = f"https://graph.facebook.com/v20.0/{post_id}/likes"
+    params = {
+        "access_token": access_token,
+        "summary": "true"
+    }
+    response = requests.get(url, params=params)
+    return response.json()
+
+def get_liked_users(post_id, access_token):
+    liked_users = []
+    url = f"https://graph.facebook.com/v20.0/{post_id}/likes"
+    params = {
+        "access_token": access_token,
+        "fields": "name",
+        "limit": 10
+    }
+    while url:
+        response = requests.get(url, params=params)
+        data = response.json()
+        liked_users.extend(user['name'] for user in data.get('data', []))
+        url = data.get('paging', {}).get('next')
+    
+    return liked_users
+
+def get_post_comments(post_id, access_token):
+    comments = []
+    url = f"https://graph.facebook.com/v20.0/{post_id}/comments"
+    params = {
+        "access_token": access_token,
+        "fields": "message,from{name}",
+        "limit": 100
+    }
+    while url:
+        response = requests.get(url, params=params)
+        data = response.json()
+        comments.extend(
+            {"message": comment['message'], "from": comment['from']['name']}
+            for comment in data.get('data', [])
+        )
+        url = data.get('paging', {}).get('next')
+    
+    return comments
+
+def extract_numbers_from_message(message):
+    # Mesajdaki tırnak içerisindeki sayıları çıkarır
+    return re.findall(r'"(\d+)"', message)
+
+def display_facebook_posts(request):
+    access_token = "EAAGtGL40drQBO8ZCK8FxCVIMETXS1hUUU5ZAu9s32zLE7mti0Vhu8eKAHm444aaQhvwPLRZBoOZCEZAsazFNo5ZC4ydVeQjdPw2OG0HuNATEPaIG9rCSEwhn2tRmIdTSnnWylelRxbG8bT71Hb9KKI8wJlA5EzpI06ICZBTsg78xGzDxknNkdjQZBFxMZAZAY5TiAqpuTsjg4EMEQf7WNV"
+    since_timestamp = int(datetime(2024, 7, 1).timestamp())
+    
+    posts_data = get_all_page_posts(access_token, since_timestamp)
+    
+    posts_insights = []
+    
+    for post in posts_data:
+        post_id = post['id']
+        insights_data = get_post_insights(post_id, access_token)
+        likes_data = get_post_likes(post_id, access_token)
+        liked_users_data = get_liked_users(post_id, access_token)
+        comments_data = get_post_comments(post_id, access_token)
+        
+        impressions = 0
+        clicks = 0
+        shares = 0
+        likes = 0
+        clicks_unique = 0
+        page_total_actions = 0
+        other_clicks = 0
+        photo_view_clicks = 0
+        link_clicks = 0
+        liked_users = []
+        comments = comments_data
+        extracted_numbers = ""
+        
+        if insights_data.get('data'):
+            for metric in insights_data['data']:
+                if metric['name'] == 'post_impressions':
+                    impressions = metric['values'][0]['value']
+                if metric['name'] == 'post_clicks':
+                    clicks = metric['values'][0]['value']
+                if metric['name'] == 'post_engaged_users':
+                    post_engaged_users = metric['values'][0]['value']
+                if metric['name'] == 'post_clicks_unique':
+                    clicks_unique = metric['values'][0]['value']
+                if metric['name'] == 'page_total_actions':
+                    page_total_actions = metric['values'][0]['value']
+                if metric['name'] == 'post_clicks_by_type':
+                    post_clicks_by_type = metric['values'][0]['value']
+                    other_clicks = post_clicks_by_type.get('other clicks', 0)
+                    photo_view_clicks = post_clicks_by_type.get('photo view', 0)
+                    link_clicks = post_clicks_by_type.get('link clicks', 0)
+                    
+        if likes_data.get('summary'):
+            likes = likes_data['summary']['total_count']
+        
+        liked_users = liked_users_data
+        
+        message = post.get('message', "")
+        extracted_numbers_list = extract_numbers_from_message(message)
+        extracted_numbers = ",".join(extracted_numbers_list)  # Sayıları virgülle birleştirerek tek bir string oluşturun
+        
+        post_record, created = FacebookPost.objects.update_or_create(
+            post_id=post_id,
+            defaults={
+                'message': message,
+                'created_time': post.get('created_time', ''),
+                'full_picture': post.get('full_picture', ''),
+                'impressions': impressions,
+                'clicks_unique': clicks_unique,
+                'clicks': clicks,
+                'shares': shares,
+                'likes': likes,
+                'page_total_actions': page_total_actions,
+                'other_clicks': other_clicks,
+                'photo_view_clicks': photo_view_clicks,
+                'link_clicks': link_clicks,
+                'extracted_number': extracted_numbers,  # Tek bir string olarak kaydedin
+                'page_total_actions' : post_engaged_users           }
+        )
+
+        # Eğer extracted_numbers doluysa ve product veritabanında mevcutsa güncellemeleri yap
+        if extracted_numbers:
+            try:
+                product = Product.objects.get(product_id=extracted_numbers)
+                if not product.score_total_updated:
+                    product.score_total -= 0.20
+                    product.score_total_updated = True
+                    product.save()
+            except Product.DoesNotExist:
+                pass
+        
+        for user in liked_users:
+            FacebookLike.objects.get_or_create(
+                post=post_record,
+                user_name=user
+            )
+        
+        for comment in comments:
+            FacebookComment.objects.get_or_create(
+                post=post_record,
+                message=comment['message'],
+                author=comment['from']
+            )
+        
+        posts_insights.append({
+            'post_id': post_id,
+            'message': message,
+            'created_time': post.get('created_time', ''),
+            'full_picture': post.get('full_picture', ''),
+            'impressions': impressions,
+            'clicks': clicks,
+            'post_engaged_users': post_engaged_users,
+            'likes': likes,
+            'clicks_unique': clicks_unique,
+            'page_total_actions': page_total_actions,
+            'other_clicks': other_clicks,
+            'photo_view_clicks': photo_view_clicks,
+            'link_clicks': link_clicks,
+            'liked_users': liked_users,
+            'comments': comments,
+            'extracted_numbers': extracted_numbers  # Elde edilen sayıları ekleyin
+        })
+    
+    return render(request, 'face_result/facebook_posts.html', {'posts': posts_insights})
+
+def update_post_calculation():
+    posts = FacebookPost.objects.all()
+    for post in posts:
+        if post.impressions is not None and post.page_total_actions is not None:
+            result = (post.impressions / 200000) * post.page_total_actions
+            post.calculation_result = result
+            post.save()
+
+
+
+def product_list (request):
+    products = Product.objects.all()
+    
+    product_with_score = []
+    product_number = 1
+    
+    for product in products:
+        if product.score_view is not None and product.score_view != 0:
+            score_view_multiplier = product.score_view *2
+            nieuw_score_multipler = score_view_multiplier *12
+            nieuwe_score_divide = nieuw_score_multipler / score_view_multiplier
+           
+        else:
+            score_view_multiplier = 0
+            nieuw_score_multipler = 0    
+            nieuwe_score_divide  = 0
+            nieuwe_score_divide  =  0
+            
+        product_with_score.append({
+            'product_id' : product_number,
+            'product_name' : product.name,
+            'product_brand' : product.brand,
+            'score_view' : product.score_view,
+            'product_code': product.product_code,
+            'score_view_multiplier': score_view_multiplier,
+            'nieuw_score_multipler' : nieuw_score_multipler,
+            'nieuwe_score_divide': nieuwe_score_divide,
+        })    
+        
+        product_number += 1
+        
+    
+    return render(request, 'face_result/product_list2.html', {'products': product_with_score})        
+            
+
+   
+
+    
+        
+    
+    
+    

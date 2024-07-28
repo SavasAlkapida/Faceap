@@ -1,0 +1,55 @@
+<!-- face_result/facebook_posts.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Facebook Posts</title>
+    <style>
+        img.post-image {
+            max-width: 100px;  /* Maksimum genişlik */
+            height: auto;      /* Otomatik yükseklik */
+        }
+    </style>
+</head>
+<body>
+    <h1>Facebook Posts</h1>
+    <ul>
+        {% for post in posts %}liked_users
+            <li>
+                <strong>Post ID:</strong> {{ post.post_id }}<br>
+                <strong>Uniq Tıklama:</strong> {{ post.clicks_unique }}<br>
+                <strong>Fotoğraf görüntüleme:</strong> {{ post.photo_view_clicks }}<br>
+                <strong>Diğer tıklama:</strong> {{ post.other_clicks }}<br>
+                <strong>Linke tıklama:</strong> {{ post.link_clicks }}<br>
+                <strong>Mesajlara yapılan tıklamalar:</strong> {{ post.page_total_actions }}<br>
+                <strong>Message:</strong> {{ post.message }}<br>
+                <strong>Created Time:</strong> {{ post.created_time }}<br>
+                <strong>Impressions:</strong> {{ post.impressions }}<br>
+                <strong>Clicks:</strong> {{ post.clicks }}<br>
+                <strong>Tıklayan yorum yapan beğenen ve digerleri:</strong> {{ post.post_engaged_users }}<br>
+                <strong>Likes:</strong> {{ post.likes }}<br>
+                <strong>Liked Users:</strong> {{ post.liked_users|join:", " }}<br>
+                <strong>Comments ({{ post.comments|length }}):</strong><br>
+                <ul>
+                    {% for comment in post.comments %}
+                        <li><strong>{{ comment.from }}:</strong> {{ comment.message }}</li>
+                    {% endfor %}
+                </ul>
+                <strong>Picture:</strong><br>
+                {% if post.full_picture %}
+                    <img src="{{ post.full_picture }}" alt="Post Picture" class="post-image"><br>
+                {% else %}
+                    No picture available.<br>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
+
+
+
+
+
+
+

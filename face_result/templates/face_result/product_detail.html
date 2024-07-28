@@ -9,18 +9,25 @@
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>product_id
 
 <div class="container mt-5">
     <h1 class="mb-4">Product Detail</h1>
     <div class="card mb-4">
-        <div class="card-body">
+        <div class="card-body">calculation_result
+            <p>Face Reklam Linki: <a href="{{ perma_link }}"target='_blank'> Reklama Git</a></p>
+            <p>Face Ana rayting {{ result }}</p>
+            <p>Face Tıklama sayısı {{ clik_face_api }}</p>
+            <p>Face Yayınlanma zamanı: {{ created_time_face_api }}</p>
+            <p>Face Görüntüleme: {{ impressions_face }}</p>
+            <p>Face reklam Açıklama: {{ masage_face_api }}</p>
+            <p>Face reklam Banner: {% if product.images %}<img src="{{ banner_face_api|first_image }}" alt="{{ banner_face_api}}" class="img-fluid" style="max-width: 200px;">{% else %}No image available{% endif %}</p>
             <h5 class="card-title">{{ product.name }}</h5>
             <p class="card-text">Category: {{ product.category_path }}</p>
             <p class="card-text">Total Score: {{ product.score_total | floatformat:3 }}</p>
             <p class="card-text">Alış Fiyatı: {{ buy_score | euro_format }}</p>
-            <p class="card-text">Sastış Fiyatı: {{ sale_price | euro_format }}</p>
+            <p class="card-text">Satış Fiyatı: {{ sale_price | euro_format }}</p>
             <p class="card-text">Product ID: {{ product.product_id}}</p>
+            <p class="card-text">Marka: {{ product.brand}}</p>
             <p class="card-text">Image: {% if product.images %}<img src="{{ product.images|first_image }}" alt="{{ product.name }}" class="img-fluid" style="max-width: 200px;">{% else %}No image available{% endif %}</p>
             <p class="card-text">Advertised Date: {% if product.advertised_date %}{{ product.advertised_date|date:"d M Y " }}{% else %}Not advertised{% endif %}</p>
             <h4>Daha Önceki reklam tarihleri</h4>
