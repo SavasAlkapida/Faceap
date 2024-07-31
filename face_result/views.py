@@ -23,6 +23,9 @@ from .utils import find_product_with_highest_score_increase
 from face_result.models import ProductChangeLog
 from django.db.models import F, ExpressionWrapper, DecimalField, Case, When, Value
 import time
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from io import BytesIO
 
 # datetime.timezone.utc yerine geçmek için
 from datetime import timezone as dt_timezone
@@ -1029,6 +1032,45 @@ def product_list (request):
     
     return render(request, 'face_result/product_list2.html', {'products': product_with_score})        
             
+def draw_and_show_polygon(request):
+    # Koordinatlar (yüzde değerler, A4 sayfası üzerinde normalize edilmiş)
+    polygon_coords = [
+        [0.41, 0.092],
+        [0.536, 0.092],
+        [0.536, 0.106],
+        [0.41, 0.106]
+    ]
+
+    # A4 sayfasının boyutları (mm cinsinden)
+    a4_width_mm = 210
+    a4_height_mm = 297
+
+    # Koordinatları A4 sayfası boyutlarına dönüştürme
+    polygon_coords_mm = [[x * a4_width_mm, y * a4_height_mm] for x, y in polygon_coords]
+
+    # Grafik oluşturma
+    fig, ax = plt.subplots()
+    ax.set_xlim(0, a4_width_mm)
+    ax.set_ylim(0, a4_height_mm)
+    ax.set_aspect('equal')
+    ax.set_xlabel('Width (mm)')
+    ax.set_ylabel('Height (mm)')
+    ax.set_title('A4 Sayfası Üzerinde Koordinatlar')
+
+    # Polygonu çiz
+    polygon = patches.Polygon(polygon_coords_mm, closed=True, fill=None, edgecolor='r')
+    ax.add_patch(polygon)
+
+    # Görüntüyü PNG formatında kaydetme
+    buf = BytesIO()
+    plt.savefig(buf, format='png')
+    plt.close(fig)
+    buf.seek(0)
+
+    # HTTP yanıtı oluşturma
+    response = HttpResponse(buf, content_type='image/png')
+    
+    return response
 
    
 

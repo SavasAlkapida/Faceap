@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
+from . import views
 from .views import create_advertisement, combined_view, advertisement_list, update_advertisements, save_advertisements, upload_file, delete_all_items, show_highest_impressions, list_products, handle_uploaded_file, fetch_xml_data, high_score_products, trigger_record_daily_score_view, trigger_fetch_xml_data, trigger_tasks, display_highest_score_increase, product_get, product_detail, hidden_products, upload_file_den, post_list, exract_number_vieuw, facebook_login, facebook_callback,publish_post,get_page_posts, product_list, display_facebook_posts
 
 urlpatterns = [
@@ -33,6 +34,7 @@ urlpatterns = [
     path('get-page-posts/', get_page_posts, name='get_page_posts'),
     path('product_list', product_list, name='product_list'),
     path('display-facebook-posts/', display_facebook_posts, name='display-facebook-posts'),
+    path('draw_and_show_polygon/', views.draw_and_show_polygon, name='draw_and_show_polygon'),
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
