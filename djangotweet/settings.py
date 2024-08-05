@@ -179,3 +179,13 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/10'),  # Her 10 dakikada bir çalıştır
     },
 }
+
+# Gmail API credentials
+GOOGLE_CLIENT_ID = '91409839625-tp0l406gvar47l6tjnt37ekospvrqn8g.apps.googleusercontent.com'
+GOOGLE_CLIENT_SECRET = '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'
+GOOGLE_REDIRECT_URI = 'http://localhost:8000/oauth2callback'
+GOOGLE_SCOPES = ['https://www.googleapis.com/auth/gmail.labels']
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = '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'

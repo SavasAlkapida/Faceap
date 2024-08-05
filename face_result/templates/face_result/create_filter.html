@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Filter</title>
+</head>
+<body>
+    <h1>Create a New Gmail Label</h1>
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <form action="{% url 'create_label' %}" method="POST">
+        {% csrf_token %}
+        <label for="label_name">Label Name:</label>
+        <input type="text" id="label_name" name="label_name" required>
+        <br><br>
+        <label for="visibility">Label List Visibility:</label>
+        <select id="visibility" name="visibility">
+            <option value="labelShow">Show</option>
+            <option value="labelHide">Hide</option>
+        </select>
+        <br><br>
+        <label for="message_visibility">Message List Visibility:</label>
+        <select id="message_visibility" name="message_visibility">
+            <option value="show">Show</option>
+            <option value="hide">Hide</option>
+        </select>
+        <br><br>
+        <button type="submit">Create Label</button>
+    </form>
+</body>
+<body>
+    <h1>Create a New Filter</h1>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <label for="from_email">From Email:</label>
+        <input type="email" id="from_email" name="from_email" required>
+        <br>
+        <label for="label_name">Label Name:</label>
+        <input type="text" id="label_name" name="label_name" required>
+        <br>
+        <label for="user_email">User Email (for filter creation):</label>
+        <input type="email" id="user_email" name="user_email" required>
+        <br>
+        <button type="submit">Create Filter</button>
+    </form>
+
+    
+</body>
+
+<body>
+    <h1>PDF Files</h1>
+    <ul>
+        {% for file in pdf_files %}
+            <li><a href="{{ MEDIA_URL }}{{ file }}" target="_blank">{{ file }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+
+
+</html>
+

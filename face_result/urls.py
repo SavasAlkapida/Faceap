@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
 from . import views
-from .views import create_advertisement, combined_view, advertisement_list, update_advertisements, save_advertisements, upload_file, delete_all_items, show_highest_impressions, list_products, handle_uploaded_file, fetch_xml_data, high_score_products, trigger_record_daily_score_view, trigger_fetch_xml_data, trigger_tasks, display_highest_score_increase, product_get, product_detail, hidden_products, upload_file_den, post_list, exract_number_vieuw, facebook_login, facebook_callback,publish_post,get_page_posts, product_list, display_facebook_posts, pdf_list_view, oauth2callback
+from .views import create_advertisement, combined_view, advertisement_list, update_advertisements, save_advertisements, upload_file, delete_all_items, show_highest_impressions, list_products, handle_uploaded_file, fetch_xml_data, high_score_products, trigger_record_daily_score_view, trigger_fetch_xml_data, trigger_tasks, display_highest_score_increase, product_get, product_detail, hidden_products, upload_file_den, post_list, exract_number_vieuw, facebook_login, facebook_callback,publish_post,get_page_posts, product_list, display_facebook_posts, pdf_list_view, oauth2callback, create_label, create_filter
 
 urlpatterns = [
     path('create/', create_advertisement, name='create_advertisement'),
@@ -37,6 +37,9 @@ urlpatterns = [
     path('draw_and_show_polygon/', views.draw_and_show_polygon, name='draw_and_show_polygon'),
     path('pdf-list/', pdf_list_view, name='pdf_list'),
     path('oauth2callback', oauth2callback, name='oauth2callback'),
+    path('create_label', create_label, name='create_label'),
+    path('oauth2callback', oauth2callback, name='oauth2callback'),
+    path('create_filter/', create_filter, name='create_filter'),
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

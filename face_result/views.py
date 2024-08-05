@@ -32,6 +32,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import Flow 
+from googleapiclient.errors import HttpError
 
 # datetime.timezone.utc yerine geçmek için
 from datetime import timezone as dt_timezone
@@ -1080,9 +1081,14 @@ def draw_and_show_polygon(request):
     return response
 
 # OAuth 2.0 Scopes for Gmail API
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+SCOPES = [
+    'https://www.googleapis.com/auth/gmail.labels',
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.modify',
+    'https://www.googleapis.com/auth/gmail.settings.basic'
+]
 
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Bu satırı ekliyoruz
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 def authenticate_gmail(request):
     creds = None
@@ -1121,7 +1127,7 @@ def oauth2callback(request):
     with open('token.json', 'w') as token:
         token.write(creds.to_json())
 
-    return redirect('pdf_list')
+    return redirect('create_label')
 
 def get_pdf_attachments(service, user_id, query):
     results = service.users().messages().list(userId=user_id, q=query).execute()
@@ -1154,7 +1160,7 @@ def pdf_list_view(request):
         os.makedirs(settings.MEDIA_ROOT)
     
     creds = authenticate_gmail(request)
-    if not isinstance(creds, Credentials):
+    if isinstance(creds, HttpResponse):  # Eğer doğrulama gerekli ise
         return creds
 
     service = build('gmail', 'v1', credentials=creds)
@@ -1169,3 +1175,73 @@ def pdf_list_view(request):
     }
     
     return render(request, 'face_result/pdf_list.html', context)
+
+def create_label(request):
+    creds = authenticate_gmail(request)
+    if isinstance(creds, HttpResponse):  # Eğer doğrulama gerekli ise
+        return creds
+
+    service = build('gmail', 'v1', credentials=creds)
+    
+    if request.method == 'POST':
+        label_name = request.POST.get('label_name')
+        visibility = request.POST.get('visibility')
+        message_visibility = request.POST.get('message_visibility')
+
+        label = {
+            'name': label_name,
+            'labelListVisibility': visibility,
+            'messageListVisibility': message_visibility
+        }
+
+        try:
+            created_label = service.users().labels().create(userId='me', body=label).execute()
+            messages.success(request, f'Label {created_label["name"]} created successfully!')
+        except HttpError as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+
+    return render(request, 'face_result/create_label.html')
+
+def create_filter(request):
+    creds = authenticate_gmail(request)
+    if isinstance(creds, HttpResponse):  # Eğer doğrulama gerekli ise
+        return creds
+
+    service = build('gmail', 'v1', credentials=creds)
+    
+    if request.method == 'POST':
+        from_email = request.POST.get('from_email')
+        label_name = request.POST.get('label_name')
+        user_email = request.POST.get('user_email')  # Kullanıcının e-posta adresini alın
+
+        try:
+            # Etiketin ID'sini alın
+            labels = service.users().labels().list(userId=user_email).execute()
+            label_id = None
+            for label in labels['labels']:
+                if label['name'] == label_name:
+                    label_id = label['id']
+                    break
+
+            if not label_id:
+                messages.error(request, f'Label {label_name} not found.')
+                return render(request, 'face_result/create_filter.html')
+
+            # Filtre oluşturun
+            filter_body = {
+                'criteria': {
+                    'from': from_email
+                },
+                'action': {
+                    'addLabelIds': [label_id],
+                    'removeLabelIds': ['INBOX']
+                }
+            }
+
+            created_filter = service.users().settings().filters().create(userId=user_email, body=filter_body).execute()
+            messages.success(request, f'Filter created successfully for emails from {from_email} to label {label_name}!')
+
+        except HttpError as error:
+            messages.error(request, f'An error occurred: {error}')
+
+    return render(request, 'face_result/create_filter.html')
