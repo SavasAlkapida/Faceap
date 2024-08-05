@@ -26,6 +26,12 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from io import BytesIO
+import base64
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import Flow 
 
 # datetime.timezone.utc yerine geçmek için
 from datetime import timezone as dt_timezone
@@ -148,7 +154,6 @@ def calculate_time_since_published(request):
 def list_social_media_posts(request):
     posts = SocialMediaPost.objects.all()
     return render(request, 'face_result/social_media_posts.html', {'posts': posts})
-
 
 
 
@@ -432,13 +437,14 @@ def product_get(request):
             
 
     products = products_queryset.all()
-    products1 = products_queryset.filter(is_advertised=False).order_by(order_by)[:600]
+    products1 = products_queryset.filter(is_advertised=False).order_by(order_by)[:300]
     categories = Product.objects.values_list('category_path', flat=True).distinct()
 
     products_with_impressions = []
     for product in products1:
         product_impressions = product.get_impressions()
         product_extracted_number = product.get_extracted_number()
+        product_extracted_number2 =product.get_extracted_number2
         
         
         products_with_impressions.append({
@@ -924,6 +930,7 @@ def display_facebook_posts(request):
         extracted_numbers_list = extract_numbers_from_message(message)
         extracted_numbers = ",".join(extracted_numbers_list)  # Sayıları virgülle birleştirerek tek bir string oluşturun
         
+        
         post_record, created = FacebookPost.objects.update_or_create(
             post_id=post_id,
             defaults={
@@ -1072,10 +1079,93 @@ def draw_and_show_polygon(request):
     
     return response
 
-   
+# OAuth 2.0 Scopes for Gmail API
+SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Bu satırı ekliyoruz
+
+def authenticate_gmail(request):
+    creds = None
+    if os.path.exists('credentials.json'):
+        if os.path.exists('token.json'):
+            creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = Flow.from_client_secrets_file('credentials.json', SCOPES)
+                flow.redirect_uri = request.build_absolute_uri(reverse('oauth2callback'))
+
+                authorization_url, state = flow.authorization_url(
+                    access_type='offline',
+                    include_granted_scopes='true')
+
+                request.session['state'] = state
+                return redirect(authorization_url)
+            
+            with open('token.json', 'w') as token:
+                token.write(creds.to_json())
+    else:
+        raise FileNotFoundError("credentials.json file not found")
+    return creds
+
+def oauth2callback(request):
+    state = request.session['state']
+    flow = Flow.from_client_secrets_file('credentials.json', SCOPES, state=state)
+    flow.redirect_uri = request.build_absolute_uri(reverse('oauth2callback'))
+
+    authorization_response = request.build_absolute_uri()
+    flow.fetch_token(authorization_response=authorization_response)
+
+    creds = flow.credentials
+    with open('token.json', 'w') as token:
+        token.write(creds.to_json())
+
+    return redirect('pdf_list')
+
+def get_pdf_attachments(service, user_id, query):
+    results = service.users().messages().list(userId=user_id, q=query).execute()
+    messages = results.get('messages', [])
+
+    pdf_files = []
+
+    if not messages:
+        print("No messages found.")
+    else:
+        for message in messages:
+            msg = service.users().messages().get(userId=user_id, id=message['id']).execute()
+            for part in msg['payload']['parts']:
+                if part['filename'] and 'application/pdf' in part['mimeType']:
+                    if 'data' in part['body']:
+                        data = part['body']['data']
+                    else:
+                        att_id = part['body']['attachmentId']
+                        att = service.users().messages().attachments().get(userId=user_id, messageId=message['id'], id=att_id).execute()
+                        data = att['data']
+                    file_data = base64.urlsafe_b64decode(data)
+                    path = os.path.join(settings.MEDIA_ROOT, part['filename'])
+                    with open(path, 'wb') as f:
+                        f.write(file_data)
+                    pdf_files.append(part['filename'])
+    return pdf_files
+
+def pdf_list_view(request):
+    if not os.path.exists(settings.MEDIA_ROOT):
+        os.makedirs(settings.MEDIA_ROOT)
     
-        
+    creds = authenticate_gmail(request)
+    if not isinstance(creds, Credentials):
+        return creds
+
+    service = build('gmail', 'v1', credentials=creds)
+
+    user_id = 'me'
+    query = 'from:savas@alkapida.com label:PDF-faturalar has:attachment filename:pdf'
+    pdf_files = get_pdf_attachments(service, user_id, query)
+
+    context = {
+        'pdf_files': pdf_files,
+        'MEDIA_URL': settings.MEDIA_URL,
+    }
     
-    
-    
+    return render(request, 'face_result/pdf_list.html', context)

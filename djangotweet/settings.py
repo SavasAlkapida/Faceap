@@ -136,9 +136,10 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-# Medya dosyalar
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/downloads/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'downloads')
+
+
 
 # CORS settings
 CORS_ORIGIN_ALLOW_ALL = True

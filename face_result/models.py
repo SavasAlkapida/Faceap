@@ -60,7 +60,7 @@ class SocialMediaPost(models.Model):
     estimated_earnings_usd = models.FloatField()
     ad_cpm_usd = models.FloatField()
     ad_impressions = models.IntegerField()
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=400)
    
 
     def __str__(self):
@@ -122,6 +122,14 @@ class Product(models.Model):
             return post.extracted_number
         except FacebookPost.DoesNotExist:
             return None
+        
+    def get_extracted_number2(self):
+        try:
+            post = FacebookPost.objects.get(extracted_number2=self.product_id)
+            return post.extracted_number2
+        except FacebookPost.DoesNotExist:
+            return None    
+        
     def get_message(self):
         try:
             post = FacebookPost.objects.get(extracted_number=self.product_id)
@@ -333,7 +341,7 @@ class FacebookPost(models.Model):
     post_id = models.CharField(max_length=255, unique=True)
     message = models.TextField(null=True, blank=True)
     created_time = models.DateTimeField()
-    full_picture = models.URLField(null=True, blank=True)
+    full_picture = models.URLField(max_length=400, null=True, blank=True)
     impressions = models.IntegerField(default=0)
     clicks = models.IntegerField(default=0)
     shares = models.IntegerField(default=0)
@@ -345,6 +353,7 @@ class FacebookPost(models.Model):
     photo_view_clicks = models.IntegerField(default=0)
     link_clicks = models.IntegerField(default=0)
     calculation_result = models.IntegerField(default=0)
+    extracted_number2 = models.CharField(max_length=255, null=True, blank=True)
     
     def __str__(self):
         return self.post_id

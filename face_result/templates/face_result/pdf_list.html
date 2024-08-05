@@ -1,0 +1,17 @@
+<!-- myapp/templates/pdf_list.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Files</title>
+</head>
+<body>
+    <h1>PDF Files</h1>
+    <ul>
+        {% for file in pdf_files %}
+            <li><a href="{{ MEDIA_URL }}{{ file }}" target="_blank">{{ file }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
