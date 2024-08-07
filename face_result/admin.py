@@ -1,7 +1,7 @@
 # face_result/admin.py
 
 from django.contrib import admin
-from face_result.models import Product , SocialMediaPost, ScoreViewHistory, Log, DailyProductData, ProductChangeLog, Post, Postd, FacebookPost, FacebookLike, FacebookComment
+from face_result.models import Product , SocialMediaPost, ScoreViewHistory, Log, DailyProductData, ProductChangeLog, Post, Postd, FacebookPost, FacebookLike, FacebookComment, Photo
 
 
 
@@ -21,6 +21,7 @@ admin.site.register(Postd)
 admin.site.register(FacebookPost)
 admin.site.register(FacebookLike)
 admin.site.register(FacebookComment)
+admin.site.register(Photo)
 
 @admin.register(DailyProductData)
 class DailyProductDataAdmin(admin.ModelAdmin):

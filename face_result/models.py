@@ -377,3 +377,19 @@ class FacebookComment(models.Model):
     
     def __str__(self):
         return f"{self.user_name} commented on {self.post.post_id}"
+    
+from django.db import models
+
+class Photo(models.Model):
+    image = models.ImageField(upload_to='photos/')
+    red = models.FloatField(null=True, blank=True)
+    green = models.FloatField(null=True, blank=True)
+    blue = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    ocr_text = models.TextField(null=True, blank=True)
+    dominant_colors = models.JSONField(default=list)
+    name = models.TextField()  # Bu satırı ekleyin
+
+    def __str__(self):
+        return self.image.name
+    

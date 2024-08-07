@@ -35,4 +35,5 @@ class UploadFileForm2(forms.Form):
         if not file.name.endswith('.xlsx'):
             raise forms.ValidationError("Yalnızca .xlsx uzantılı dosyalar yükleyebilirsiniz.")
         return file    
-    
+class UploadImageForm(forms.Form):
+    image = forms.ImageField()    

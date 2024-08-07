@@ -40,6 +40,13 @@ urlpatterns = [
     path('create_label', create_label, name='create_label'),
     path('oauth2callback', oauth2callback, name='oauth2callback'),
     path('create_filter/', create_filter, name='create_filter'),
+    path('upload/', views.upload_photo, name='upload_photo'),
+    path('photo_list/', views.photo_list, name='photo_list'),
+    path('photo/<int:id>/', views.photo_detail, name='photo_detail'),
+    path('analyze_products/', views.analyze_and_save_products, name='analyze_products'),
+    # path('cendex/', views.cendex, name='cendex'),
+    # path('get_image_properties/', views.get_image_properties, name='get_image_properties'),
+    
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

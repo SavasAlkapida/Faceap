@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import AdvertisementForm, SearchForm, UploadFileForm, UploadFileForm2
-from .models import Advertisement, Product, AdvertisedHistory, SocialMediaPost, ScoreViewHistory, Post, Postd, FacebookPost, FacebookComment, FacebookLike
+from .models import Advertisement, Product, AdvertisedHistory, SocialMediaPost, ScoreViewHistory, Post, Postd, FacebookPost, FacebookComment, FacebookLike, Photo
 import requests
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
@@ -33,6 +33,8 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import Flow 
 from googleapiclient.errors import HttpError
+from google.cloud import vision
+from google.cloud.vision_v1 import types
 
 # datetime.timezone.utc yerine geçmek için
 from datetime import timezone as dt_timezone
@@ -1245,3 +1247,210 @@ def create_filter(request):
             messages.error(request, f'An error occurred: {error}')
 
     return render(request, 'face_result/create_filter.html')
+
+
+# Ortam değişkenini ayarlayın
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\Users\\31621\\Downloads\\alkapida-1490688048932-b9250de86516.json'
+
+# Google Vision istemcisi oluşturun
+# client = vision.ImageAnnotatorClient()
+# def get_image_properties(request):
+#     """Görüntünün özelliklerini döndüren bir fonksiyon."""
+#     if request.method == 'POST' and request.FILES.get('image'):
+#         image_file = request.FILES['image']
+#         content = image_file.read()
+        
+#         image = types.Image(content=content)
+#         response = client.image_properties(image=image)
+#         props = response.image_properties_annotation
+        
+#         # Baskın renkleri çıkar
+#         dominant_colors = extract_dominant_colors(props)
+#         return JsonResponse({'dominant_colors': dominant_colors})
+    
+#     return JsonResponse({'error': 'No image provided'}, status=400)
+
+# def extract_dominant_colors(props):
+#     """Görüntüden baskın renkleri çıkaran bir fonksiyon."""
+#     colors = []
+#     for color in props.dominant_colors.colors:
+#         colors.append({
+#             'red': color.color.red,
+#             'green': color.color.green,
+#             'blue': color.color.blue
+#         })
+#     return colors
+
+# def cendex(request):
+#     return render(request, 'face_result/cendex.html')
+
+
+import os
+from django.shortcuts import render
+from django.http import JsonResponse
+from google.cloud import vision_v1 as vision
+from .models import Photo
+
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\Users\\31621\\Downloads\\vision-project-2-b2d238969216.json'
+
+# Google Vision istemcisi oluşturun
+client = vision.ImageAnnotatorClient()
+
+def upload_photo(request):
+    if request.method == 'POST' and request.FILES.getlist('images'):
+        images = request.FILES.getlist('images')
+        results = []
+
+        for image_file in images:
+            photo = Photo(image=image_file)
+            photo.save()
+
+            try:
+                # Google Vision API ile renk analizi
+                image_file.seek(0)  # Dosya akışını başa sarın
+                content = image_file.read()
+                image = vision.Image(content=content)
+
+                # Gerekli özellikleri belirtin
+                features = [
+                    vision.Feature(type=vision.Feature.Type.IMAGE_PROPERTIES),
+                    vision.Feature(type=vision.Feature.Type.TEXT_DETECTION)
+                ]
+                request_annotate = vision.AnnotateImageRequest(image=image, features=features)
+
+                response = client.annotate_image(request=request_annotate)
+                props = response.image_properties_annotation
+                texts = response.text_annotations
+
+                # Baskın renkleri çıkar
+                dominant_colors = extract_dominant_colors(props)
+
+                # OCR metnini çıkar
+                ocr_text = texts[0].description if texts else ""
+
+                # Verileri veritabanına kaydet
+                photo.dominant_colors = dominant_colors
+                photo.ocr_text = ocr_text
+                if dominant_colors:
+                    photo.red = dominant_colors[0]['red']
+                    photo.green = dominant_colors[0]['green']
+                    photo.blue = dominant_colors[0]['blue']
+                photo.save()
+
+                results.append({'image': photo.image.url, 'dominant_colors': dominant_colors, 'ocr_text': ocr_text})
+
+            except Exception as e:
+                results.append({'error': str(e)})
+
+        return JsonResponse({'results': results})
+
+    return render(request, 'face_result/upload_photo.html')
+
+def find_similar_photos(photo):
+    """Benzer fotoğrafları bulmak için bir fonksiyon."""
+    photos = Photo.objects.all()
+    similarities = []
+
+    for other_photo in photos:
+        if other_photo.id != photo.id and photo.dominant_colors and other_photo.dominant_colors:
+            distance = color_distance(photo.dominant_colors, other_photo.dominant_colors)
+            similarities.append((other_photo, distance))
+
+    similarities.sort(key=lambda x: x[1])
+    return [sim[0] for sim in similarities[:5]]
+
+def color_distance(colors1, colors2):
+    """İki renk listesi arasındaki ortalama renk mesafesini hesaplayan bir fonksiyon."""
+    if not colors1 or not colors2:
+        return float('inf')
+
+    total_distance = 0
+    count = min(len(colors1), len(colors2))
+
+    for i in range(count):
+        color1 = colors1[i]
+        color2 = colors2[i]
+        distance = ((color1['red'] - color2['red']) ** 2 +
+                    (color1['green'] - color2['green']) ** 2 +
+                    (color1['blue'] - color2['blue']) ** 2) ** 0.5
+        total_distance += distance
+
+    return total_distance / count
+
+def photo_list(request):
+    photos = Photo.objects.all()
+    return render(request, 'face_result/photo_list.html', {'photos': photos})
+
+def analyze_and_save_products(request):
+    # Google Vision istemcisini oluşturun
+    client = vision.ImageAnnotatorClient()
+
+    # Veritabanından 100 ürünü çekin
+    products = Product.objects.all()[:10]
+
+    for product in products:
+        image_uris = product.images.split(',')  # Virgülle ayrılmış resim URL'lerini ayırın
+        if not image_uris:
+            continue
+
+        first_image_uri = image_uris[0]  # İlk resim URL'sini alın
+        print(f"Processing {product.name} with image {first_image_uri}")
+
+        image = vision.Image()
+        image.source.image_uri = first_image_uri
+
+        # Görüntü özelliklerini belirtin
+        features = [
+            vision.Feature(type=vision.Feature.Type.IMAGE_PROPERTIES),
+            vision.Feature(type=vision.Feature.Type.TEXT_DETECTION)
+        ]
+        request_annotate = vision.AnnotateImageRequest(image=image, features=features)
+
+        try:
+            response = client.annotate_image(request=request_annotate)
+            props = response.image_properties_annotation
+            texts = response.text_annotations
+
+            dominant_colors = extract_dominant_colors(props)
+            ocr_text = texts[0].description if texts else ""
+
+            # Photo modeline kaydet
+            photo = Photo(
+                image=first_image_uri,
+                name=product.name,
+                red=dominant_colors[0]['red'] if dominant_colors else None,
+                green=dominant_colors[0]['green'] if dominant_colors else None,
+                blue=dominant_colors[0]['blue'] if dominant_colors else None,
+                ocr_text=ocr_text,
+                dominant_colors=dominant_colors
+            )
+            photo.save()
+            print(f"Processed {product.name}: {dominant_colors}, OCR Text: {ocr_text}")
+
+        except Exception as e:
+            # Hata durumunda mesajı kaydedebilirsiniz
+            print(f"Error processing {product.name}: {e}")
+
+    # Analyze products sayfasına yönlendirme
+    return render(request, 'face_result/analyze_products.html', {'photos': Photo.objects.all()})
+
+def extract_dominant_colors(props):
+    """Görüntüden baskın renkleri çıkaran bir fonksiyon."""
+    colors = []
+    if props:
+        for color in props.dominant_colors.colors:
+            colors.append({
+                'red': color.color.red,
+                'green': color.color.green,
+                'blue': color.color.blue
+            })
+    return colors
+
+def analyze_products(request):
+    photos = Photo.objects.all()
+    return render(request, 'face_result/analyze_products.html', {'photos': photos})
+
+def photo_detail(request, id):
+    photo = get_object_or_404(Photo, id=id)
+    similar_photos = find_similar_photos(photo)
+    return render(request, 'face_result/photo_detail.html', {'photo': photo, 'similar_photos': similar_photos})

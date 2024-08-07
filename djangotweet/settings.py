@@ -15,6 +15,7 @@ import os
 from dotenv import load_dotenv
 import environ
 from celery.schedules import crontab
+from google.cloud import vision
 
 # BASE_DIR değişkenini tanımlayın
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -189,3 +190,8 @@ GOOGLE_SCOPES = ['https://www.googleapis.com/auth/gmail.labels']
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = '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'
+
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\Users\\31621\\Downloads\\vision-project-2-b2d238969216.json'
+
+# Google Vision istemcisi oluşturun
+client = vision.ImageAnnotatorClient()

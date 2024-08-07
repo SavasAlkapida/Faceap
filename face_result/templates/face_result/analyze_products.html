@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Analysis</title>
+</head>
+<body>
+    <h1>Product Analysis</h1>
+    <ul>
+        {% for photo in photos %}
+            <li>
+                <h3>{{ photo.name }}</h3>
+                <img src="{{ photo.image }}" alt="{{ photo.name }}" width="100">
+                <p>Dominant Color - Red: {{ photo.red }}, Green: {{ photo.green }}, Blue: {{ photo.blue }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
+</html>
+
+
