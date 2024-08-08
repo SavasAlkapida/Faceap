@@ -49,6 +49,7 @@ ALLOWED_HOSTS = ['0888.nl', 'www.0888.nl', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'face_result',
+    'face_result.templatetags', 
     'ocrapp',
     'access_tokens',
     'djmoney',

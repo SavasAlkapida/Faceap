@@ -382,14 +382,42 @@ from django.db import models
 
 class Photo(models.Model):
     image = models.ImageField(upload_to='photos/')
-    red = models.FloatField(null=True, blank=True)
-    green = models.FloatField(null=True, blank=True)
-    blue = models.FloatField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    red_0 = models.FloatField(null=True, blank=True)
+    green_0 = models.FloatField(null=True, blank=True)
+    blue_0 = models.FloatField(null=True, blank=True)
+    red_1 = models.FloatField(null=True, blank=True)
+    green_1 = models.FloatField(null=True, blank=True)
+    blue_1 = models.FloatField(null=True, blank=True)
+    red_2 = models.FloatField(null=True, blank=True)
+    green_2 = models.FloatField(null=True, blank=True)
+    blue_2 = models.FloatField(null=True, blank=True)
+    red_3 = models.FloatField(null=True, blank=True)
+    green_3 = models.FloatField(null=True, blank=True)
+    blue_3 = models.FloatField(null=True, blank=True)
+    red_4 = models.FloatField(null=True, blank=True)
+    green_4 = models.FloatField(null=True, blank=True)
+    blue_4 = models.FloatField(null=True, blank=True)
+    red_5 = models.FloatField(null=True, blank=True)
+    green_5 = models.FloatField(null=True, blank=True)
+    blue_5 = models.FloatField(null=True, blank=True)
+    red_6 = models.FloatField(null=True, blank=True)
+    green_6 = models.FloatField(null=True, blank=True)
+    blue_6 = models.FloatField(null=True, blank=True)
+    red_7 = models.FloatField(null=True, blank=True)
+    green_7 = models.FloatField(null=True, blank=True)
+    blue_7 = models.FloatField(null=True, blank=True)
+    red_8 = models.FloatField(null=True, blank=True)
+    green_8 = models.FloatField(null=True, blank=True)
+    blue_8 = models.FloatField(null=True, blank=True)
+    red_9 = models.FloatField(null=True, blank=True)
+    green_9 = models.FloatField(null=True, blank=True)
+    blue_9 = models.FloatField(null=True, blank=True)
     ocr_text = models.TextField(null=True, blank=True)
-    dominant_colors = models.JSONField(default=list)
-    name = models.TextField()  # Bu satırı ekleyin
+    objects_field = models.TextField(null=True, blank=True)  # Eklenen alan
+    labels_field = models.TextField(null=True, blank=True)  # Etiket bilgileri
 
     def __str__(self):
         return self.image.name
-    
+
+    def get_objects(self):
+        return self.objects_field.split(",") if self.objects_field else []

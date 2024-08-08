@@ -1291,10 +1291,23 @@ from django.http import JsonResponse
 from google.cloud import vision_v1 as vision
 from .models import Photo
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\Users\\31621\\Downloads\\vision-project-2-b2d238969216.json'
+# Ortam değişkenini ayarlayın
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/31621/Downloads/vision-project-2-b2d238969216.json'
 
 # Google Vision istemcisi oluşturun
 client = vision.ImageAnnotatorClient()
+
+def extract_dominant_colors(props):
+    colors = []
+    if props:
+        for color in props.dominant_colors.colors:
+            colors.append({
+                'red': color.color.red,
+                'green': color.color.green,
+                'blue': color.color.blue
+            })
+    return colors
+
 
 def upload_photo(request):
     if request.method == 'POST' and request.FILES.getlist('images'):
@@ -1306,38 +1319,55 @@ def upload_photo(request):
             photo.save()
 
             try:
-                # Google Vision API ile renk analizi
-                image_file.seek(0)  # Dosya akışını başa sarın
+                image_file.seek(0)
                 content = image_file.read()
                 image = vision.Image(content=content)
 
-                # Gerekli özellikleri belirtin
                 features = [
                     vision.Feature(type=vision.Feature.Type.IMAGE_PROPERTIES),
-                    vision.Feature(type=vision.Feature.Type.TEXT_DETECTION)
+                    vision.Feature(type=vision.Feature.Type.TEXT_DETECTION),
+                    vision.Feature(type=vision.Feature.Type.LABEL_DETECTION),
+                    vision.Feature(type=vision.Feature.Type.OBJECT_LOCALIZATION)
                 ]
                 request_annotate = vision.AnnotateImageRequest(image=image, features=features)
 
                 response = client.annotate_image(request=request_annotate)
                 props = response.image_properties_annotation
                 texts = response.text_annotations
+                labels = response.label_annotations
+                objects = response.localized_object_annotations
 
-                # Baskın renkleri çıkar
                 dominant_colors = extract_dominant_colors(props)
-
-                # OCR metnini çıkar
                 ocr_text = texts[0].description if texts else ""
+                label_descriptions = [label.description for label in labels]
+                object_descriptions = [obj.name for obj in objects]
 
-                # Verileri veritabanına kaydet
-                photo.dominant_colors = dominant_colors
                 photo.ocr_text = ocr_text
+                photo.labels_field = ','.join(label_descriptions)
+                photo.objects_field = ','.join(object_descriptions)
+
                 if dominant_colors:
-                    photo.red = dominant_colors[0]['red']
-                    photo.green = dominant_colors[0]['green']
-                    photo.blue = dominant_colors[0]['blue']
+                    photo.red_0 = dominant_colors[0]['red']
+                    photo.green_0 = dominant_colors[0]['green']
+                    photo.blue_0 = dominant_colors[0]['blue']
+                    for i in range(1, 10):
+                        if len(dominant_colors) > i:
+                            setattr(photo, f'red_{i}', dominant_colors[i]['red'])
+                            setattr(photo, f'green_{i}', dominant_colors[i]['green'])
+                            setattr(photo, f'blue_{i}', dominant_colors[i]['blue'])
+                        else:
+                            setattr(photo, f'red_{i}', None)
+                            setattr(photo, f'green_{i}', None)
+                            setattr(photo, f'blue_{i}', None)
                 photo.save()
 
-                results.append({'image': photo.image.url, 'dominant_colors': dominant_colors, 'ocr_text': ocr_text})
+                results.append({
+                    'image': photo.image.url,
+                    'dominant_colors': dominant_colors,
+                    'ocr_text': ocr_text,
+                    'labels': label_descriptions,
+                    'objects': object_descriptions
+                })
 
             except Exception as e:
                 results.append({'error': str(e)})
@@ -1346,17 +1376,32 @@ def upload_photo(request):
 
     return render(request, 'face_result/upload_photo.html')
 
+
 def find_similar_photos(photo):
-    """Benzer fotoğrafları bulmak için bir fonksiyon."""
     photos = Photo.objects.all()
     similarities = []
 
-    for other_photo in photos:
-        if other_photo.id != photo.id and photo.dominant_colors and other_photo.dominant_colors:
-            distance = color_distance(photo.dominant_colors, other_photo.dominant_colors)
-            similarities.append((other_photo, distance))
+    def get_dominant_colors(photo):
+        return [
+            {'red': getattr(photo, f'red_{i}'), 'green': getattr(photo, f'green_{i}'), 'blue': getattr(photo, f'blue_{i}')}
+            for i in range(10) if getattr(photo, f'red_{i}') is not None
+        ]
 
-    similarities.sort(key=lambda x: x[1])
+    photo_colors = get_dominant_colors(photo)
+    photo_objects = photo.get_objects()
+
+    for other_photo in photos:
+        if other_photo.id != photo.id:
+            other_photo_colors = get_dominant_colors(other_photo)
+            other_photo_objects = other_photo.get_objects()
+
+            object_similarity = len(set(photo_objects).intersection(set(other_photo_objects)))
+            color_dist = color_distance(photo_colors, other_photo_colors) if photo_colors and other_photo_colors else float('inf')
+
+            similarities.append((other_photo, object_similarity, color_dist))
+
+    similarities.sort(key=lambda x: (-x[1], x[2]))
+
     return [sim[0] for sim in similarities[:5]]
 
 def color_distance(colors1, colors2):
@@ -1377,14 +1422,17 @@ def color_distance(colors1, colors2):
 
     return total_distance / count
 
+def photo_detail(request, id):
+    photo = get_object_or_404(Photo, id=id)
+    similar_photos = find_similar_photos(photo)
+    return render(request, 'face_result/photo_detail.html', {'photo': photo, 'similar_photos': similar_photos, 'range': range(10)})
+
+
 def photo_list(request):
     photos = Photo.objects.all()
     return render(request, 'face_result/photo_list.html', {'photos': photos})
 
 def analyze_and_save_products(request):
-    # Google Vision istemcisini oluşturun
-    client = vision.ImageAnnotatorClient()
-
     # Veritabanından 100 ürünü çekin
     products = Product.objects.all()[:10]
 
@@ -1417,12 +1465,37 @@ def analyze_and_save_products(request):
             # Photo modeline kaydet
             photo = Photo(
                 image=first_image_uri,
-                name=product.name,
-                red=dominant_colors[0]['red'] if dominant_colors else None,
-                green=dominant_colors[0]['green'] if dominant_colors else None,
-                blue=dominant_colors[0]['blue'] if dominant_colors else None,
-                ocr_text=ocr_text,
-                dominant_colors=dominant_colors
+                red_0=dominant_colors[0]['red'] if len(dominant_colors) > 0 else None,
+                green_0=dominant_colors[0]['green'] if len(dominant_colors) > 0 else None,
+                blue_0=dominant_colors[0]['blue'] if len(dominant_colors) > 0 else None,
+                red_1=dominant_colors[1]['red'] if len(dominant_colors) > 1 else None,
+                green_1=dominant_colors[1]['green'] if len(dominant_colors) > 1 else None,
+                blue_1=dominant_colors[1]['blue'] if len(dominant_colors) > 1 else None,
+                red_2=dominant_colors[2]['red'] if len(dominant_colors) > 2 else None,
+                green_2=dominant_colors[2]['green'] if len(dominant_colors) > 2 else None,
+                blue_2=dominant_colors[2]['blue'] if len(dominant_colors) > 2 else None,
+                red_3=dominant_colors[3]['red'] if len(dominant_colors) > 3 else None,
+                green_3=dominant_colors[3]['green'] if len(dominant_colors) > 3 else None,
+                blue_3=dominant_colors[3]['blue'] if len(dominant_colors) > 3 else None,
+                red_4=dominant_colors[4]['red'] if len(dominant_colors) > 4 else None,
+                green_4=dominant_colors[4]['green'] if len(dominant_colors) > 4 else None,
+                blue_4=dominant_colors[4]['blue'] if len(dominant_colors) > 4 else None,
+                red_5=dominant_colors[5]['red'] if len(dominant_colors) > 5 else None,
+                green_5=dominant_colors[5]['green'] if len(dominant_colors) > 5 else None,
+                blue_5=dominant_colors[5]['blue'] if len(dominant_colors) > 5 else None,
+                red_6=dominant_colors[6]['red'] if len(dominant_colors) > 6 else None,
+                green_6=dominant_colors[6]['green'] if len(dominant_colors) > 6 else None,
+                blue_6=dominant_colors[6]['blue'] if len(dominant_colors) > 6 else None,
+                red_7=dominant_colors[7]['red'] if len(dominant_colors) > 7 else None,
+                green_7=dominant_colors[7]['green'] if len(dominant_colors) > 7 else None,
+                blue_7=dominant_colors[7]['blue'] if len(dominant_colors) > 7 else None,
+                red_8=dominant_colors[8]['red'] if len(dominant_colors) > 8 else None,
+                green_8=dominant_colors[8]['green'] if len(dominant_colors) > 8 else None,
+                blue_8=dominant_colors[8]['blue'] if len(dominant_colors) > 8 else None,
+                red_9=dominant_colors[9]['red'] if len(dominant_colors) > 9 else None,
+                green_9=dominant_colors[9]['green'] if len(dominant_colors) > 9 else None,
+                blue_9=dominant_colors[9]['blue'] if len(dominant_colors) > 9 else None,
+                ocr_text=ocr_text
             )
             photo.save()
             print(f"Processed {product.name}: {dominant_colors}, OCR Text: {ocr_text}")
@@ -1434,23 +1507,78 @@ def analyze_and_save_products(request):
     # Analyze products sayfasına yönlendirme
     return render(request, 'face_result/analyze_products.html', {'photos': Photo.objects.all()})
 
-def extract_dominant_colors(props):
-    """Görüntüden baskın renkleri çıkaran bir fonksiyon."""
-    colors = []
-    if props:
-        for color in props.dominant_colors.colors:
-            colors.append({
-                'red': color.color.red,
-                'green': color.color.green,
-                'blue': color.color.blue
-            })
-    return colors
+def analyze_existing_photos(request):
+    # Google Vision istemcisini oluşturun
+    client = vision.ImageAnnotatorClient()
 
-def analyze_products(request):
+    # Veritabanındaki mevcut fotoğrafları alın
     photos = Photo.objects.all()
-    return render(request, 'face_result/analyze_products.html', {'photos': photos})
+    results = []
 
-def photo_detail(request, id):
-    photo = get_object_or_404(Photo, id=id)
-    similar_photos = find_similar_photos(photo)
-    return render(request, 'face_result/photo_detail.html', {'photo': photo, 'similar_photos': similar_photos})
+    for photo in photos:
+        try:
+            # Google Vision API ile analiz
+            image_file = photo.image.file
+            image_file.seek(0)  # Dosya akışını başa sarın
+            content = image_file.read()
+            image = vision.Image(content=content)
+
+            # Gerekli özellikleri belirtin
+            features = [
+                vision.Feature(type=vision.Feature.Type.IMAGE_PROPERTIES),
+                vision.Feature(type=vision.Feature.Type.TEXT_DETECTION),
+                vision.Feature(type=vision.Feature.Type.LABEL_DETECTION),
+                vision.Feature(type=vision.Feature.Type.OBJECT_LOCALIZATION)
+            ]
+            request_annotate = vision.AnnotateImageRequest(image=image, features=features)
+
+            response = client.annotate_image(request=request_annotate)
+            props = response.image_properties_annotation
+            texts = response.text_annotations
+            labels = response.label_annotations
+            objects = response.localized_object_annotations
+
+            # Baskın renkleri çıkar
+            dominant_colors = extract_dominant_colors(props)
+
+            # OCR metnini çıkar
+            ocr_text = texts[0].description if texts else ""
+
+            # Etiketleri çıkar
+            label_descriptions = [label.description for label in labels]
+
+            # Nesne tespiti sonuçlarını çıkar
+            object_descriptions = [obj.name for obj in objects]
+
+            # Verileri veritabanına kaydet
+            photo.dominant_colors = dominant_colors
+            photo.ocr_text = ocr_text
+            if dominant_colors:
+                photo.red_0 = dominant_colors[0]['red'] if len(dominant_colors) > 0 else None
+                photo.green_0 = dominant_colors[0]['green'] if len(dominant_colors) > 0 else None
+                photo.blue_0 = dominant_colors[0]['blue'] if len(dominant_colors) > 0 else None
+                # Ek renkleri kaydedin
+                for i in range(1, 10):
+                    if len(dominant_colors) > i:
+                        setattr(photo, f'red_{i}', dominant_colors[i]['red'])
+                        setattr(photo, f'green_{i}', dominant_colors[i]['green'])
+                        setattr(photo, f'blue_{i}', dominant_colors[i]['blue'])
+                    else:
+                        setattr(photo, f'red_{i}', None)
+                        setattr(photo, f'green_{i}', None)
+                        setattr(photo, f'blue_{i}', None)
+            photo.objects_field = ','.join(object_descriptions)
+            photo.save()
+
+            results.append({
+                'image': photo.image.url,
+                'dominant_colors': dominant_colors,
+                'ocr_text': ocr_text,
+                'labels': label_descriptions,
+                'objects': object_descriptions
+            })
+
+        except Exception as e:
+            results.append({'error': str(e)})
+
+    return render(request, 'face_result/analyze_existing_photos.html', {'results': results})

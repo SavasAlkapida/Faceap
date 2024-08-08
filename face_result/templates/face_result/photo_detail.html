@@ -1,3 +1,5 @@
+{% load custom_filters %}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,29 +8,33 @@
 <body>
     <h1>Photo Detail</h1>
 
-    <!-- Ana Fotoğraf -->
     <div>
-        <h2>{{ photo.name }}</h2>
-        <img src="{{ photo.image.url }}" alt="{{ photo.name }}" width="200">
+        <h2>{{ photo.image.name }}</h2>
+        <img src="{{ photo.image.url }}" alt="{{ photo.image.name }}" width="200">
     </div>
 
     <h2>OCR Text:</h2>
     <p>{{ photo.ocr_text }}</p>
 
     <h2>Dominant Colors:</h2>
-    <p>Red: {{ photo.red }}</p>
-    <p>Green: {{ photo.green }}</p>
-    <p>Blue: {{ photo.blue }}</p>
+    {% for i in range %}
+        {% if photo|get_attr:"red_"|add:i %}
+            <p>Color {{ i }} - Red: {{ photo|get_attr:"red_"|add:i }}, Green: {{ photo|get_attr:"green_"|add:i }}, Blue: {{ photo|get_attr:"blue_"|add:i }}</p>
+        {% endif %}
+    {% endfor %}
 
     <h2>Similar Photos</h2>
     <div style="display: flex; flex-wrap: wrap;">
         {% for similar_photo in similar_photos %}
             <div style="margin: 10px;">
-                <img src="{{ similar_photo.image.url }}" alt="{{ similar_photo.name }}" width="150">
-                <p>Dominant Color - Red: {{ similar_photo.red }}, Green: {{ similar_photo.green }}, Blue: {{ similar_photo.blue }}</p>
+                <img src="{{ similar_photo.image.url }}" alt="{{ similar_photo.image.name }}" width="150">
+                {% for i in range %}
+                    {% if similar_photo|get_attr:"red_"|add:i %}
+                        <p>Color {{ i }} - Red: {{ similar_photo|get_attr:"red_"|add:i }}, Green: {{ similar_photo|get_attr:"green_"|add:i }}, Blue: {{ similar_photo|get_attr:"blue_"|add:i }}</p>
+                    {% endif %}
+                {% endfor %}
             </div>
         {% endfor %}
     </div>
-
 </body>
 </html>

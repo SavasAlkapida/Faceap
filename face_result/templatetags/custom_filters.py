@@ -2,16 +2,21 @@ from django import template
 
 register = template.Library()
 
-@register.filter
-def euro_format(value):
-    try:
-        return f"€ {value:.2f}"
-    except (ValueError, TypeError):
-        return value
+@register.filter(name='addclass')
+def addclass(value, arg):
+    return value.as_widget(attrs={'class': arg})
+
+
+register = template.Library()
 
 
 @register.filter
-def first_image(value):
-    if value:
-        return value.split(',')[0]
-    return value
+def add(value, arg):
+    return str(value) + str(arg)    
+
+register = template.Library()
+
+
+@register.filter
+def get_attr(obj, attr_name):
+    return getattr(obj, attr_name, None)

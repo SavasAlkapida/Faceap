@@ -44,6 +44,7 @@ urlpatterns = [
     path('photo_list/', views.photo_list, name='photo_list'),
     path('photo/<int:id>/', views.photo_detail, name='photo_detail'),
     path('analyze_products/', views.analyze_and_save_products, name='analyze_products'),
+    path('analyze_existing_photos/', views.analyze_existing_photos, name='analyze_existing_photos'),
     # path('cendex/', views.cendex, name='cendex'),
     # path('get_image_properties/', views.get_image_properties, name='get_image_properties'),
     
