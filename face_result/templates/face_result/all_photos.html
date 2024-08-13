@@ -1,0 +1,22 @@
+<!-- templates/face_result/all_photos.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Photos</title>
+</head>
+<body>
+    <h1>All Photos</h1>
+    <ul>
+        {% for photo in photos %}
+            <li>
+                <a href="{% url 'display_photo_with_similar' photo.id %}">
+                    <img src="{{ photo.image.url }}" alt="Photo" width="150">
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
 from . import views
-from .views import create_advertisement, combined_view, advertisement_list, update_advertisements, save_advertisements, upload_file, delete_all_items, show_highest_impressions, list_products, handle_uploaded_file, fetch_xml_data, high_score_products, trigger_record_daily_score_view, trigger_fetch_xml_data, trigger_tasks, display_highest_score_increase, product_get, product_detail, hidden_products, upload_file_den, post_list, exract_number_vieuw, facebook_login, facebook_callback,publish_post,get_page_posts, product_list, display_facebook_posts, pdf_list_view, oauth2callback, create_label, create_filter
+from .views import create_advertisement, combined_view, advertisement_list, update_advertisements, save_advertisements, upload_file, delete_all_items, show_highest_impressions, list_products, handle_uploaded_file, fetch_xml_data, high_score_products, trigger_record_daily_score_view, trigger_fetch_xml_data, trigger_tasks, display_highest_score_increase, product_get, product_detail, hidden_products, upload_file_den, post_list, exract_number_vieuw, facebook_login, facebook_callback,publish_post,get_page_posts, product_list, display_facebook_posts, pdf_list_view, oauth2callback, create_label, create_filter, correct_pdf_view
 
 urlpatterns = [
     path('create/', create_advertisement, name='create_advertisement'),
@@ -45,6 +45,12 @@ urlpatterns = [
     path('photo/<int:id>/', views.photo_detail, name='photo_detail'),
     path('analyze_products/', views.analyze_and_save_products, name='analyze_products'),
     path('analyze_existing_photos/', views.analyze_existing_photos, name='analyze_existing_photos'),
+    path('correct-pdf/', correct_pdf_view, name='correct_pdf'),
+    path('upload_new/', views.handle_photo_upload, name='handle_photo_upload'),
+    path('photos/', views.list_all_photos, name='list_all_photos'),
+    path('photos/<int:id>/', views.display_photo_with_similar, name='display_photo_with_similar'),
+    path('analyze_and_save_products_custom/', views.analyze_and_save_products_custom, name='analyze_and_save_products_custom'),
+    path('analyze_existing_photos_custom/', views.analyze_existing_photos_custom, name='analyze_existing_photos_custom'),
     # path('cendex/', views.cendex, name='cendex'),
     # path('get_image_properties/', views.get_image_properties, name='get_image_properties'),
     
@@ -55,3 +61,5 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    
+    

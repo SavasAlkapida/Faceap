@@ -1,0 +1,26 @@
+<!-- templates/face_result/analyze_products_custom.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyze Products</title>
+</head>
+<body>
+    <h1>Analyze Products</h1>
+    <ul>
+        {% for photo in photos %}
+            <li>
+                <img src="{{ photo.image.url }}" alt="Photo" width="150">
+                <p>OCR Text: {{ photo.ocr_text }}</p>
+                <p>Dominant Colors:</p>
+                <ul>
+                    <li>Red: {{ photo.red_0 }}, Green: {{ photo.green_0 }}, Blue: {{ photo.blue_0 }}</li>
+                    <!-- Devamını burada listeleyebilirsiniz -->
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!-- templates/face_result/photo_similar.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Similar Photos</title>
+</head>
+<body>
+    <h1>Photo and Similar Photos</h1>
+    <h2>Selected Photo</h2>
+    <img src="{{ photo.image.url }}" alt="Photo" width="300">
+    
+    <h2>Similar Photos</h2>
+    <ul>
+        {% for similar_photo in similar_photos %}
+            <li>
+                <img src="{{ similar_photo.image.url }}" alt="Similar Photo" width="150">
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

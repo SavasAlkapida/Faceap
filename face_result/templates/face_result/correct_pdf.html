@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Düzeltme</title>
+</head>
+<body>
+    <h1>PDF Düzeltme</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Yükle ve Düzelt</button>
+    </form>
+</body>
+</html>
+

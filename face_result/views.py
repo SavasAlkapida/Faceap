@@ -35,6 +35,11 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.errors import HttpError
 from google.cloud import vision
 from google.cloud.vision_v1 import types
+from .forms import PDFUploadForm
+import cv2
+import numpy as np
+from pdf2image import convert_from_bytes
+from .forms import ImageUploadForm
 
 # datetime.timezone.utc yerine geçmek için
 from datetime import timezone as dt_timezone
@@ -1286,16 +1291,18 @@ def create_filter(request):
 
 
 import os
-from django.shortcuts import render
-from django.http import JsonResponse
+import requests
 from google.cloud import vision_v1 as vision
-from .models import Photo
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
+from .models import Product, Photo
 
 # Ortam değişkenini ayarlayın
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/31621/Downloads/vision-project-2-b2d238969216.json'
 
 # Google Vision istemcisi oluşturun
 client = vision.ImageAnnotatorClient()
+
 
 def extract_dominant_colors(props):
     colors = []
@@ -1307,6 +1314,84 @@ def extract_dominant_colors(props):
                 'blue': color.color.blue
             })
     return colors
+
+def analyze_and_save_products_from_db():
+    products = Product.objects.all()
+
+    for product in products:
+        image_urls = product.images.split(',')
+        if image_urls:
+            # Sadece ilk resmi al
+            image_url = image_urls[0].strip()  # İlk linki al ve etrafındaki boşlukları kaldır
+
+            try:
+                # Resmi indir ve yerel bir dosya adı oluştur
+                response = requests.get(image_url, stream=True)
+                if response.status_code == 200:
+                    image_name = os.path.basename(image_url)
+                    local_image_path = os.path.join('C:/Users/31621/Faceap/local_images', image_name)
+
+                    # Resmi yerel bir dosyaya kaydet
+                    with open(local_image_path, 'wb') as local_file:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            local_file.write(chunk)
+
+                    # Google Vision API ile analiz yap
+                    with open(local_image_path, 'rb') as local_file:
+                        content = local_file.read()
+                        image = vision.Image(content=content)
+
+                        features = [
+                            vision.Feature(type=vision.Feature.Type.IMAGE_PROPERTIES),
+                            vision.Feature(type=vision.Feature.Type.TEXT_DETECTION),
+                            vision.Feature(type=vision.Feature.Type.LABEL_DETECTION),
+                            vision.Feature(type=vision.Feature.Type.OBJECT_LOCALIZATION)
+                        ]
+                        request_annotate = vision.AnnotateImageRequest(image=image, features=features)
+
+                        response = client.annotate_image(request=request_annotate)
+                        props = response.image_properties_annotation
+                        texts = response.text_annotations
+                        labels = response.label_annotations
+                        objects = response.localized_object_annotations
+
+                        dominant_colors = extract_dominant_colors(props)
+                        ocr_text = texts[0].description if texts else ""
+                        label_descriptions = [label.description for label in labels]
+                        object_descriptions = [obj.name for obj in objects]
+
+                        # Photo modeline kaydet
+                        photo = Photo(product=product)
+                        with open(local_image_path, 'rb') as local_file:
+                            photo.image.save(image_name, File(local_file))
+
+                        photo.ocr_text = ocr_text
+                        photo.labels_field = ','.join(label_descriptions)
+                        photo.objects_field = ','.join(object_descriptions)
+
+                        if dominant_colors:
+                            photo.red_0 = dominant_colors[0]['red']
+                            photo.green_0 = dominant_colors[0]['green']
+                            photo.blue_0 = dominant_colors[0]['blue']
+                            for i in range(1, 10):
+                                if len(dominant_colors) > i:
+                                    setattr(photo, f'red_{i}', dominant_colors[i]['red'])
+                                    setattr(photo, f'green_{i}', dominant_colors[i]['green'])
+                                    setattr(photo, f'blue_{i}', dominant_colors[i]['blue'])
+                                else:
+                                    setattr(photo, f'red_{i}', None)
+                                    setattr(photo, f'green_{i}', None)
+                                    setattr(photo, f'blue_{i}', None)
+                        photo.save()
+
+                        print(f"Saved photo for product {product.name} with image {image_name}")
+                    # Yerel dosyayı sil
+                    os.remove(local_image_path)
+                else:
+                    print(f"Failed to download image {image_url}")
+
+            except Exception as e:
+                print(f"Error processing image {image_url} for product {product.name}: {e}")
 
 
 def upload_photo(request):
@@ -1377,6 +1462,8 @@ def upload_photo(request):
     return render(request, 'face_result/upload_photo.html')
 
 
+
+
 def find_similar_photos(photo):
     photos = Photo.objects.all()
     similarities = []
@@ -1387,20 +1474,36 @@ def find_similar_photos(photo):
             for i in range(10) if getattr(photo, f'red_{i}') is not None
         ]
 
+    # Ana fotoğrafın OCR metni, renkler ve etiketleri
     photo_colors = get_dominant_colors(photo)
-    photo_objects = photo.get_objects()
+    photo_objects = set(photo.get_objects())
+    photo_labels = set(photo.labels_field.split(',')) if photo.labels_field else set()
+    photo_ocr_text = photo.ocr_text.lower() if photo.ocr_text else ""
 
     for other_photo in photos:
         if other_photo.id != photo.id:
             other_photo_colors = get_dominant_colors(other_photo)
-            other_photo_objects = other_photo.get_objects()
+            other_photo_objects = set(other_photo.get_objects())
+            other_photo_labels = set(other_photo.labels_field.split(',')) if other_photo.labels_field else set()
+            other_photo_ocr_text = other_photo.ocr_text.lower() if other_photo.ocr_text else ""
 
-            object_similarity = len(set(photo_objects).intersection(set(other_photo_objects)))
+            # OCR similarity'yi hesapla (basit string karşılaştırması, daha gelişmiş bir yöntem kullanılabilir)
+            ocr_similarity = int(photo_ocr_text == other_photo_ocr_text)
+            
+            # Object similarity'yi hesapla
+            object_similarity = len(photo_objects.intersection(other_photo_objects))
+            
+            # Renk mesafesini hesapla
             color_dist = color_distance(photo_colors, other_photo_colors) if photo_colors and other_photo_colors else float('inf')
 
-            similarities.append((other_photo, object_similarity, color_dist))
+            # Label similarity'yi hesapla
+            label_similarity = len(photo_labels.intersection(other_photo_labels))
 
-    similarities.sort(key=lambda x: (-x[1], x[2]))
+            # Hem OCR, renkler, hem de etiketlere göre sıralama yapmak için tuple olarak ekliyoruz
+            similarities.append((other_photo, ocr_similarity, color_dist, object_similarity, label_similarity))
+
+    # Önce OCR benzerliğine (tersine çevrilmiş, çünkü 1 en yüksek değeri temsil eder), sonra renk mesafesine, sonra object similarity'ye ve en son labels similarity'ye göre sıralama yapıyoruz
+    similarities.sort(key=lambda x: (-x[1], x[2], -x[3], -x[4]))
 
     return [sim[0] for sim in similarities[:5]]
 
@@ -1430,7 +1533,12 @@ def photo_detail(request, id):
 
 def photo_list(request):
     photos = Photo.objects.all()
-    return render(request, 'face_result/photo_list.html', {'photos': photos})
+    paginator = Paginator(photos, 100)  # Her sayfada 50 fotoğraf gösterilecek
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'face_result/photo_list.html', {'page_obj': page_obj})
 
 def analyze_and_save_products(request):
     # Veritabanından 100 ürünü çekin
@@ -1582,3 +1690,342 @@ def analyze_existing_photos(request):
             results.append({'error': str(e)})
 
     return render(request, 'face_result/analyze_existing_photos.html', {'results': results})
+
+import cv2
+import numpy as np
+from pdf2image import convert_from_bytes
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from django.shortcuts import render
+from django.http import HttpResponse
+from .forms import PDFUploadForm
+from django.conf import settings
+import os
+
+def get_rotation_angle(image):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, threshold=100, minLineLength=100, maxLineGap=10)
+
+    if lines is None:
+        return 0
+
+    angles = []
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        angle = np.degrees(np.arctan2(y2 - y1, x2 - x1))
+        angles.append(angle)
+
+    median_angle = np.median(angles)
+    return median_angle
+
+def rotate_image(image, angle):
+    (h, w) = image.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    rotated = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    return rotated
+
+def find_text_left_edge(image):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Görüntüyü binarize et
+    _, binary = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
+    
+    # Metinlerin konturlarını bul
+    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    min_x = image.shape[1]  # Görüntü genişliği ile başlıyoruz
+    for cnt in contours:
+        x, y, w, h = cv2.boundingRect(cnt)
+        
+        # Küçük konturları ve uzun dikey çizgileri hariç tutmak için bir filtre ekleyelim
+        if h > 10 and w / h < 5:  # Genişliği 10'dan küçük ve genişlik/yükseklik oranı 5'ten küçük olanları dikkate al
+            if x < min_x:
+                min_x = x
+    
+    return min_x
+
+def align_text_to_original(image, original_image):
+    # Döndürülen görüntüdeki metinlerin sol kenarını bulun
+    skewed_left_edge = find_text_left_edge(image)
+    
+    # Orijinal PDF'deki metinlerin sol kenarını bulun
+    original_left_edge = find_text_left_edge(original_image)
+    
+    # Metni orijinal PDF ile aynı hizaya getirmek için kaydırma miktarını hesaplayın
+    dx = original_left_edge - skewed_left_edge
+    
+    # Görüntüyü yatayda kaydır
+    M = np.float32([[1, 0, dx], [0, 1, 0]])
+    shifted = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]))
+    
+    return shifted
+
+def correct_pdf_view(request):
+    if request.method == 'POST':
+        form = PDFUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            original_pdf_file = request.FILES['original_pdf']
+            skewed_pdf_file = request.FILES['skewed_pdf']
+
+            original_images = convert_from_bytes(original_pdf_file.read())
+            skewed_images = convert_from_bytes(skewed_pdf_file.read())
+
+            corrected_images = []
+
+            for original_image, skewed_image in zip(original_images, skewed_images):
+                np_original = np.array(original_image)
+                np_skewed = np.array(skewed_image)
+
+                angle = get_rotation_angle(np_skewed)
+                rotated_image = rotate_image(np_skewed, angle)
+                
+                aligned_image = align_text_to_original(rotated_image, np_original)
+
+                corrected_images.append(aligned_image)
+
+            output_pdf_path = os.path.join(settings.MEDIA_ROOT, 'corrected_document.pdf')
+            c = canvas.Canvas(output_pdf_path, pagesize=letter)
+            for i, img in enumerate(corrected_images):
+                temp_image_path = os.path.join(settings.MEDIA_ROOT, f'temp_corrected_image_{i}.jpg')
+                cv2.imwrite(temp_image_path, img)
+                c.drawImage(temp_image_path, 0, 0, letter[0], letter[1])
+                c.showPage()
+
+            c.save()
+
+            return HttpResponse(f"PDF başarıyla düzeltildi ve kaydedildi: {output_pdf_path}")
+    else:
+        form = PDFUploadForm()
+
+    return render(request, 'face_result/correct_pdf.html', {'form': form})
+
+import os
+import cv2
+import numpy as np
+import pytesseract
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from .models import Photo
+from sklearn.cluster import KMeans
+
+
+def get_dominant_colors_opencv(image, k=5):
+    pixels = image.reshape((-1, 3))
+    kmeans = KMeans(n_clusters=k)
+    kmeans.fit(pixels)
+    colors = kmeans.cluster_centers_
+    return colors.astype(int)
+
+import unidecode
+
+def handle_photo_upload(request):
+    if request.method == 'POST' and request.FILES.getlist('images'):
+        images = request.FILES.getlist('images')
+        results = []
+
+        for image_file in images:
+            # Dosya adını normalleştirme
+            original_filename = image_file.name
+            normalized_filename = unidecode.unidecode(original_filename)
+            normalized_filepath = os.path.join('downloads/photos', normalized_filename)
+
+            # Dosyayı normalize edilmiş adla kaydetme
+            with open(normalized_filepath, 'wb+') as destination:
+                for chunk in image_file.chunks():
+                    destination.write(chunk)
+
+            # Dosya yolunu kullanarak resmi yükleme
+            image = cv2.imread(normalized_filepath)
+
+            if image is None:
+                return JsonResponse({'error': f'Image could not be loaded: {normalized_filepath}'})
+            
+            # OCR işlemi
+            ocr_text = pytesseract.image_to_string(image)
+            print(f"OCR Text: {ocr_text}")  # Hata ayıklama için
+
+            # Görüntünün dominant renklerini çıkarma
+            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            dominant_colors = get_dominant_colors_opencv(image_rgb, k=5)
+            print(f"Dominant Colors: {dominant_colors}")  # Hata ayıklama için
+
+            # Eğer dominant renkler boşsa ve OCR text boşsa
+            if len(dominant_colors) == 0 and not ocr_text:
+                return JsonResponse({'error': 'No OCR text or dominant colors found in image'})
+
+            photo = Photo(image=normalized_filepath)
+            for i, color in enumerate(dominant_colors):
+                setattr(photo, f'red_{i}', int(color[0]))
+                setattr(photo, f'green_{i}', int(color[1]))
+                setattr(photo, f'blue_{i}', int(color[2]))
+
+            # OCR sonucunu kaydet
+            photo.ocr_text = ocr_text
+            photo.save()
+
+            results.append({
+                'image': photo.image.url,
+                'dominant_colors': [{'red': int(color[0]), 'green': int(color[1]), 'blue': int(color[2])} for color in dominant_colors],
+                'ocr_text': ocr_text
+            })
+
+        return JsonResponse({'results': results})
+
+    return render(request, 'face_result/photo_upload.html')
+
+
+def find_similar_photos(photo):
+    photos = Photo.objects.all()
+    similarities = []
+
+    def get_dominant_colors(photo):
+        return [
+            {'red': getattr(photo, f'red_{i}'), 'green': getattr(photo, f'green_{i}'), 'blue': getattr(photo, f'blue_{i}')}
+            for i in range(10) if getattr(photo, f'red_{i}') is not None
+        ]
+
+    photo_colors = get_dominant_colors(photo)
+    photo_objects = photo.get_objects()
+
+    for other_photo in photos:
+        if other_photo.id != photo.id:
+            other_photo_colors = get_dominant_colors(other_photo)
+            other_photo_objects = other_photo.get_objects()
+
+            object_similarity = len(set(photo_objects).intersection(set(other_photo_objects)))
+            color_dist = color_distance(photo_colors, other_photo_colors) if photo_colors and other_photo_colors else float('inf')
+
+            similarities.append((other_photo, object_similarity, color_dist))
+
+    similarities.sort(key=lambda x: (-x[1], x[2]))
+
+    return [sim[0] for sim in similarities[:5]]
+
+def color_distance(colors1, colors2):
+    if not colors1 or not colors2:
+        return float('inf')
+
+    total_distance = 0
+    count = min(len(colors1), len(colors2))
+
+    for i in range(count):
+        color1 = colors1[i]
+        color2 = colors2[i]
+        distance = ((color1['red'] - color2['red']) ** 2 +
+                    (color1['green'] - color2['green']) ** 2 +
+                    (color1['blue'] - color2['blue']) ** 2) ** 0.5
+        total_distance += distance
+
+    return total_distance / count
+
+def display_photo_with_similar(request, id):
+    photo = get_object_or_404(Photo, id=id)
+    similar_photos = find_similar_photos(photo)
+    return render(request, 'face_result/photo_similar.html', {'photo': photo, 'similar_photos': similar_photos, 'range': range(10)})
+
+def list_all_photos(request):
+    photos = Photo.objects.all()
+    return render(request, 'face_result/all_photos.html', {'photos': photos})
+
+def analyze_and_save_products_custom(request):
+    products = Product.objects.all()[:10]
+
+    for product in products:
+        image_uris = product.images.split(',')
+        if not image_uris:
+            continue
+
+        first_image_uri = image_uris[0]
+        print(f"Processing {product.name} with image {first_image_uri}")
+
+        image = cv2.imread(first_image_uri)
+        if image is None:
+            print(f"Error loading image: {first_image_uri}")
+            continue
+
+        dominant_colors = get_dominant_colors_opencv(image)
+        ocr_text = pytesseract.image_to_string(image)
+
+        photo = Photo(
+            image=first_image_uri,
+            red_0=dominant_colors[0]['red'] if len(dominant_colors) > 0 else None,
+            green_0=dominant_colors[0]['green'] if len(dominant_colors) > 0 else None,
+            blue_0=dominant_colors[0]['blue'] if len(dominant_colors) > 0 else None,
+            red_1=dominant_colors[1]['red'] if len(dominant_colors) > 1 else None,
+            green_1=dominant_colors[1]['green'] if len(dominant_colors) > 1 else None,
+            blue_1=dominant_colors[1]['blue'] if len(dominant_colors) > 1 else None,
+            red_2=dominant_colors[2]['red'] if len(dominant_colors) > 2 else None,
+            green_2=dominant_colors[2]['green'] if len(dominant_colors) > 2 else None,
+            blue_2=dominant_colors[2]['blue'] if len(dominant_colors) > 2 else None,
+            red_3=dominant_colors[3]['red'] if len(dominant_colors) > 3 else None,
+            green_3=dominant_colors[3]['green'] if len(dominant_colors) > 3 else None,
+            blue_3=dominant_colors[3]['blue'] if len(dominant_colors) > 3 else None,
+            red_4=dominant_colors[4]['red'] if len(dominant_colors) > 4 else None,
+            green_4=dominant_colors[4]['green'] if len(dominant_colors) > 4 else None,
+            blue_4=dominant_colors[4]['blue'] if len(dominant_colors) > 4 else None,
+            red_5=dominant_colors[5]['red'] if len(dominant_colors) > 5 else None,
+            green_5=dominant_colors[5]['green'] if len(dominant_colors) > 5 else None,
+            blue_5=dominant_colors[5]['blue'] if len(dominant_colors) > 5 else None,
+            red_6=dominant_colors[6]['red'] if len(dominant_colors) > 6 else None,
+            green_6=dominant_colors[6]['green'] if len(dominant_colors) > 6 else None,
+            blue_6=dominant_colors[6]['blue'] if len(dominant_colors) > 6 else None,
+            red_7=dominant_colors[7]['red'] if len(dominant_colors) > 7 else None,
+            green_7=dominant_colors[7]['green'] if len(dominant_colors) > 7 else None,
+            blue_7=dominant_colors[7]['blue'] if len(dominant_colors) > 7 else None,
+            red_8=dominant_colors[8]['red'] if len(dominant_colors) > 8 else None,
+            green_8=dominant_colors[8]['green'] if len(dominant_colors) > 8 else None,
+            blue_8=dominant_colors[8]['blue'] if len(dominant_colors) > 8 else None,
+            red_9=dominant_colors[9]['red'] if len(dominant_colors) > 9 else None,
+            green_9=dominant_colors[9]['green'] if len(dominant_colors) > 9 else None,
+            blue_9=dominant_colors[9]['blue'] if len(dominant_colors) > 9 else None,
+            ocr_text=ocr_text
+        )
+        photo.save()
+        print(f"Processed {product.name}: {dominant_colors}, OCR Text: {ocr_text}")
+
+    return render(request, 'face_result/analyze_products_custom.html', {'photos': Photo.objects.all()})
+
+def analyze_existing_photos_custom(request):
+    photos = Photo.objects.all()
+    results = []
+
+    for photo in photos:
+        try:
+            image_file = photo.image.file
+            image_file.seek(0)
+            image = cv2.imread(photo.image.path)
+
+            if image is None:
+                continue
+
+            dominant_colors = get_dominant_colors_opencv(image)
+            ocr_text = pytesseract.image_to_string(image)
+
+            photo.ocr_text = ocr_text
+            if dominant_colors:
+                photo.red_0 = dominant_colors[0]['red'] if len(dominant_colors) > 0 else None
+                photo.green_0 = dominant_colors[0]['green'] if len(dominant_colors) > 0 else None
+                photo.blue_0 = dominant_colors[0]['blue'] if len(dominant_colors) > 0 else None
+                for i in range(1, 10):
+                    if len(dominant_colors) > i:
+                        setattr(photo, f'red_{i}', dominant_colors[i]['red'])
+                        setattr(photo, f'green_{i}', dominant_colors[i]['green'])
+                        setattr(photo, f'blue_{i}', dominant_colors[i]['blue'])
+                    else:
+                        setattr(photo, f'red_{i}', None)
+                        setattr(photo, f'green_{i}', None)
+                        setattr(photo, f'blue_{i}', None)
+            photo.save()
+
+            results.append({
+                'image': photo.image.url,
+                'dominant_colors': dominant_colors,
+                'ocr_text': ocr_text,
+            })
+
+        except Exception as e:
+            results.append({'error': str(e)})
+
+    return render(request, 'face_result/analyze_existing_photos_custom.html', {'results': results})

@@ -1,0 +1,27 @@
+<!-- templates/face_result/analyze_existing_photos_custom.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyze Existing Photos</title>
+</head>
+<body>
+    <h1>Analyze Existing Photos</h1>
+    <ul>
+        {% for result in results %}
+            <li>
+                <img src="{{ result.image }}" alt="Photo" width="150">
+                <p>OCR Text: {{ result.ocr_text }}</p>
+                <p>Dominant Colors:</p>
+                <ul>
+                    {% for color in result.dominant_colors %}
+                        <li>Red: {{ color.red }}, Green: {{ color.green }}, Blue: {{ color.blue }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

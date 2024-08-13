@@ -381,6 +381,9 @@ class FacebookComment(models.Model):
 from django.db import models
 
 class Photo(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='photos')
+    web_entities = models.TextField(null=True, blank=True)
+    safe_search_results = models.JSONField(null=True, blank=True)
     image = models.ImageField(upload_to='photos/')
     red_0 = models.FloatField(null=True, blank=True)
     green_0 = models.FloatField(null=True, blank=True)

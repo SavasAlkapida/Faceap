@@ -1,0 +1,36 @@
+<!-- templates/face_result/photo_upload.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Photos</title>
+</head>
+<body>
+    <h1>Upload Photos</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="images">Choose multiple images:</label>
+        <input type="file" name="images" id="images" multiple>
+        <button type="submit">Upload</button>
+    </form>
+    {% if results %}
+        <h2>Upload Results</h2>
+        <ul>
+            {% for result in results %}
+                <li>
+                    <img src="{{ result.image }}" alt="Uploaded Image" width="150">
+                    <p>OCR Text: {{ result.ocr_text }}</p>
+                    <p>Dominant Colors:</p>
+                    <ul>
+                        {% for color in result.dominant_colors %}
+                            <li>Red: {{ color.red }}, Green: {{ color.green }}, Blue: {{ color.blue }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>

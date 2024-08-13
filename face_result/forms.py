@@ -37,3 +37,10 @@ class UploadFileForm2(forms.Form):
         return file    
 class UploadImageForm(forms.Form):
     image = forms.ImageField()    
+    
+class PDFUploadForm(forms.Form):
+    original_pdf = forms.FileField(label='Orijinal PDF')
+    skewed_pdf = forms.FileField(label='Yamuk PDF')    
+
+class ImageUploadForm(forms.Form):
+    image = forms.ImageField(label='Görüntü Yükle')
